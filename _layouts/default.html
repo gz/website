@@ -1,0 +1,74 @@
+---
+navigation:
+- text: About
+  url: /index.html
+- text: Blog
+  url: /blog.html
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="favicon.png">
+
+    <title>{{ page.title }}</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/main.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">{{ site.name }}</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            {% assign url = page.url|remove:'index.html' %}
+            {% for link in page.navigation %}
+                <li {% if page.url == link.url %}class="active"{% endif %}>
+                <a href="{{link.url}}" title="{{link.title}}">{{link.text}}</a></li>
+            {% endfor %}
+
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Social <b class="caret"/></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="https://github.com/gz">Github</a></li>
+                    <li><a href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/gerdzellweger">Facebook</a></li>
+                    <li><a href="https://plus.google.com/100035054239500288082">Google+</a></li>
+                    <li><a href="https://twitter.com/gerdzellweger">Twitter</a></li>
+                </ul>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+        {{ content }}
+    </div>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+  </body>
+</html>
+

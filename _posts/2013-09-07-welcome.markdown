@@ -1,0 +1,8 @@
+---
+layout: post
+title:  "Welcome on My Blog!"
+date:   2013-09-07 16:41:30
+categories: first
+---
+
+Everybody has a blog, therefore I have one as well and this is my obligatory first post.
