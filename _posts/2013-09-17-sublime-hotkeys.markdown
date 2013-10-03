@@ -34,6 +34,7 @@ For the last three you're going to need some additional [key bindings][2].
 * <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>: Edit all selected lines
 * <kbd>Ctrl</kbd>+<kbd>i</kbd>: Interactive search, combine with <kbd>Ctrl</kbd>+<kbd>d</kbd> to search and edit!
 * <kbd>Ctrl</kbd>+<kbd>j</kbd>: Join lines on one line
+* <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd>: Paste and keep indentation
 
 ### Vintage Mode
 
@@ -60,6 +61,11 @@ A ```<project>.sublime-project``` file in the top level directory of your projec
 "file_excluse_patterns": ["*.css"] // Remove specific files from project view
 "folder_exclude_patterns:" ['js', 'css']  // Remove specific folders
 "settings": [] // Specific project settings
+```
+
+### Useful User Settings
+```
+"trim_trailing_white_space_on_save": true, // Remove whitespaces at the end of lines
 ```
 
 ### Plugins
