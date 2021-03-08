@@ -3,10 +3,12 @@ layout: default
 title: Gerd Zellweger
 ---
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
   ga('create', 'UA-67902252-1', 'auto');
   ga('send', 'pageview');
@@ -14,82 +16,102 @@ title: Gerd Zellweger
 </script>
 
 <div class="clearfix">
-    <h1>Welcome</h1>
-    <div class="pull-right">
-        <img src="/img/gerd.jpg" alt="Profile Picture" width="180px" class="img-rounded img-responsive" />
-    </div>
-    <p>
-      Hi, I am a systems researcher working at <a href="https://research.vmware.com">VMware Research (VRG)</a>. 
-      I'm interested in Operating Systems design and implementation, networks and system software interaction with emerging hardware technologies.
-    </p>
-    <p>I graduated Doctor of Sciences in Computer Science from <a href="http://www.ethz.ch/">ETH Zürich</a> in 2017 under the supervision of <a href="http://people.inf.ethz.ch/troscoe/">Timothy Roscoe</a>.</p>
-    <p>My thesis involved (among other things) hacking on the <a href="http://barrelfish.org">Barrelfish Project</a>.</p>
-    <p>In 2010, I co-founded a start-up called Texercises, a collaborative exercise database for teachers and students. Texercises was acquired by edTechLab AG in 2015 (see <a href="https://taskbase.com/">taskbase.com</a>).</p>
+  <h1>Welcome</h1>
+  <div class="pull-right">
+    <img src="/img/gerd.jpg" alt="Profile Picture" width="180px" class="img-rounded img-responsive" />
+  </div>
+  <p>
+    Hi, I am a systems researcher working at <a href="https://research.vmware.com">VMware Research (VRG)</a>.
+    I'm interested in Operating Systems design and implementation, networks and system software interaction with
+    emerging hardware technologies.
+  </p>
+  <p>I graduated Doctor of Sciences in Computer Science from <a href="http://www.ethz.ch/">ETH Zürich</a> in 2017.</p>
+  <p>My thesis involved (among other things) hacking on the <a href="http://barrelfish.org">Barrelfish Project</a>.</p>
+  <p>In 2010, I co-founded a start-up called Texercises, a collaborative exercise database for teachers and students.
+    Texercises was acquired by edTechLab AG in 2015 (see <a href="https://taskbase.com/">taskbase.com</a>).</p>
 </div>
 
 <h3>Publications</h3>
 <ul class="unstyled">
   <li>
+    <a href="papers/redleaf-osdi20.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <a href="https://www.youtube.com/watch?v=MKjliJWzs6w"><i class="fa fa-youtube-play"></i></a>
     <strong>RedLeaf: Isolation and Communication in a Safe Operating System</strong>,
-    Vikram Narayanan, Tianjiao Huang, David Detweiler, Dan Appel, Zhaofeng Li, Gerd Zellweger, Anton Burtsev. Proceedings of the 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI, Virtual, November 2020, to appear).
+    Vikram Narayanan, Tianjiao Huang, David Detweiler, Dan Appel, Zhaofeng Li, Gerd Zellweger, Anton Burtsev.
+    Proceedings of the 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI, Virtual, November
+    2020).
   </li>
 
-  
   <li>
     <a href="papers/ioctopus-asplos20.pdf"><i class="fa fa-file-pdf-o"></i></a>
     <a href="https://www.youtube.com/watch?v=RXBYjiVdsY8"><i class="fa fa-youtube-play"></i></a>
-    <strong>IOctopus: outsmarting nonuniform DMA</strong>, 
-    Igor Smolyar, Alex Markuze, Boris Pismenny, Haggai Eran, Gerd Zellweger, Austin Bolen, Liran Liss, Adam Morrison, Dan Tsafrir. Proceedings of the 25th international conference on Architectural support for Programming languages and Operating systems (ASPLOS, Lausanne, CH, March 2020)
+    <strong>IOctopus: outsmarting nonuniform DMA</strong>,
+    Igor Smolyar, Alex Markuze, Boris Pismenny, Haggai Eran, Gerd Zellweger, Austin Bolen, Liran Liss, Adam Morrison,
+    Dan Tsafrir. Proceedings of the 25th international conference on Architectural support for Programming languages and
+    Operating systems (ASPLOS, Lausanne, CH, March 2020)
   </li>
 
   <li>
-        <a href="papers/glatt-apsys16.pdf"><i class="fa fa-file-pdf-o"></i></a>
-        <strong>So many performance events, so little time</strong>, Gerd Zellweger, Denny Lin, Timothy Roscoe. Proceedings of the 7th Asia-Pacific Workshop on Systems (APSys, Hong Kong, China, August 2016).
-    </li>
-  <li>
-      <a href="papers/customizedos-damon16.pdf"><i class="fa fa-file-pdf-o"></i></a>
-      <strong>Customized OS support for data processing</strong>, Jana Giceva, Gerd Zellweger, Gustavo Alonso, Timothy Roscoe. Proceedings of the 12th International Workshop on Data Management on New Hardware (DaMoN, San Francisco, USA, June 2016).
+    <a href="papers/glatt-apsys16.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <strong>So many performance events, so little time</strong>, Gerd Zellweger, Denny Lin, Timothy Roscoe. Proceedings
+    of the 7th Asia-Pacific Workshop on Systems (APSys, Hong Kong, China, August 2016).
   </li>
   <li>
-      <a href="papers/basslet-mars16.pdf"><i class="fa fa-file-pdf-o"></i></a>
-      <strong>Basslet: an OS runtime for parallel data processing</strong>, Jana Giceva, Gerd Zellweger, Gustavo Alonso, Timothy Roscoe. In the 2016 Workshop on Multicore and Rack-scale Systems (MaRS, London, UK, April 2016).
+    <a href="papers/customizedos-damon16.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <strong>Customized OS support for data processing</strong>, Jana Giceva, Gerd Zellweger, Gustavo Alonso, Timothy
+    Roscoe. Proceedings of the 12th International Workshop on Data Management on New Hardware (DaMoN, San Francisco,
+    USA, June 2016).
   </li>
   <li>
-      <a href="papers/spacejmp-asplos16.pdf"><i class="fa fa-file-pdf-o"></i></a>
-      <strong>SpaceJMP: Programming with Multiple Virtual Address Spaces</strong>, Izzat El Hajj, Alexander Merritt, Gerd Zellweger, Dejan Milojicic, Reto Achermann, Paolo Faraboschi, Wen-mei Hwu, Timothy Roscoe, Karsten Schwan. Proceedings of the 21th international conference on Architectural support for Programming languages and Operating systems (ASPLOS, Atlanta (GA), USA, April 2016).
+    <a href="papers/basslet-mars16.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <strong>Basslet: an OS runtime for parallel data processing</strong>, Jana Giceva, Gerd Zellweger, Gustavo Alonso,
+    Timothy Roscoe. In the 2016 Workshop on Multicore and Rack-scale Systems (MaRS, London, UK, April 2016).
   </li>
   <li>
-      <a href="papers/physical-spaces-hotos15.pdf"><i class="fa fa-file-pdf-o"></i></a>
-      <strong>Not Your Parents' Physical Address Space</strong>, Simon Gerber, Gerd Zellweger, Reto Achermann, Kornilios Kourtis, Timothy Roscoe, Dejan Milojicic. Proceedings of the 15th Workshop on Hot Topics in Operating Systems (HotOS XV, Kartause Ittingen, CH, May 2015).
+    <a href="papers/spacejmp-asplos16.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <strong>SpaceJMP: Programming with Multiple Virtual Address Spaces</strong>, Izzat El Hajj, Alexander Merritt, Gerd
+    Zellweger, Dejan Milojicic, Reto Achermann, Paolo Faraboschi, Wen-mei Hwu, Timothy Roscoe, Karsten Schwan.
+    Proceedings of the 21th international conference on Architectural support for Programming languages and Operating
+    systems (ASPLOS, Atlanta (GA), USA, April 2016).
+  </li>
+  <li>
+    <a href="papers/physical-spaces-hotos15.pdf"><i class="fa fa-file-pdf-o"></i></a>
+    <strong>Not Your Parents' Physical Address Space</strong>, Simon Gerber, Gerd Zellweger, Reto Achermann, Kornilios
+    Kourtis, Timothy Roscoe, Dejan Milojicic. Proceedings of the 15th Workshop on Hot Topics in Operating Systems (HotOS
+    XV, Kartause Ittingen, CH, May 2015).
   </li>
   <li>
     <a href="papers/decoupling-cores-osdi14.pdf"><i class="fa fa-file-pdf-o"></i></a>
     <a href="https://www.youtube.com/watch?v=Fk7bL6gwBLg"><i class="fa fa-youtube-play"></i></a>
-    <strong>Decoupling Cores, Kernels, and Operating Systems</strong>, Gerd Zellweger, Simon Gerber, Kornilios Kourtis, Timothy Roscoe. Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI, Broomfield (CO), USA, October 2014).</li>
+    <strong>Decoupling Cores, Kernels, and Operating Systems</strong>, Gerd Zellweger, Simon Gerber, Kornilios Kourtis,
+    Timothy Roscoe. Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI,
+    Broomfield (CO), USA, October 2014).
+  </li>
   <li>
     <a href="papers/octopus-apsys12.pdf"><i class="fa fa-file-pdf-o"></i></a>
-    <strong>Unifying Synchronization and Events in a Multicore OS</strong>, Gerd Zellweger, Adrian Schuepbach, Timothy Roscoe. Proceedings of the 3rd Asia-Pacific Workshop on Systems (APSys, Seoul, South Korea, June 2012).
+    <strong>Unifying Synchronization and Events in a Multicore OS</strong>, Gerd Zellweger, Adrian Schuepbach, Timothy
+    Roscoe. Proceedings of the 3rd Asia-Pacific Workshop on Systems (APSys, Seoul, South Korea, June 2012).
   </li>
 </ul>
 
 <div class="row">
   <div class="col-xs-4">
-      <h3>Contact</h3>
-      <p>
-          <a class="btn btn-social-icon btn-github" href="https://github.com/gz">
-             <span class="fa fa-github"></span>
-          </a>
-          <a class="btn btn-social-icon btn-linkedin" href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">
-             <span class="fa fa-linkedin"></span>
-          </a>
-          <a class="btn btn-social-icon btn-twitter" href="https://twitter.com/gerdzellweger">
-             <span class="fa fa-twitter"></span>
-          </a>
-      </p>
+    <h3>Contact</h3>
+    <p>
+      <a class="btn btn-social-icon btn-github" href="https://github.com/gz">
+        <span class="fa fa-github"></span>
+      </a>
+      <a class="btn btn-social-icon btn-linkedin" href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">
+        <span class="fa fa-linkedin"></span>
+      </a>
+      <a class="btn btn-social-icon btn-twitter" href="https://twitter.com/gerdzellweger">
+        <span class="fa fa-twitter"></span>
+      </a>
+    </p>
 
-      <address>
-        <b>email:</b> mail at gerdzellweger.com<br />
-       </address>
+    <address>
+      <b>email:</b> mail at gerdzellweger.com<br />
+    </address>
 
   </div>
 </div>
