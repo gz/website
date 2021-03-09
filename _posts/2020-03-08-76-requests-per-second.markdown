@@ -221,8 +221,6 @@ it. When this function was first implemented, our kernel used a [buddy
 allocator][6] to allocate physical memory. The buddy allocator would always
 return a physically consecutive region of memory, which the kernel mapped  as a
 virtually consecutive region by writing the page-table entries accordingly.
-Finally, it would return the physical start address and virtual start address of
-the buffer.
 
 The bug got introduced when sometime in the middle of implementing the
 hypercalls, the underlying kernel memory allocator changed: Rather than using a
@@ -236,16 +234,16 @@ return the physical address of the first page that got mapped as `paddr`.
 This meant that if the size of the buffer was exactly 4 KiB, everything was
 virtually and physically consecutive. For larger memory areas like the one
 allocated by the NIC driver (64 KiB), the returned `paddr` would only match for
-to the first 4 KiB of the buffer. Afterwards all bets were off[^3]. The driver
-would then take the buffer and slice it up into smaller packet buffers. The
-physical address of those individual buffers was calculated by taking the
+the first 4 KiB of the buffer. Afterwards all bets were off[^3]. The driver
+would then take this large buffer and slice it up into smaller packet buffers.
+The physical address of those individual buffers was calculated by taking the
 original `paddr` and adding a offset to it. What this meant for the system was
 that only a small percentage of the packet buffers were actually working. For
 the rest, the device would write to them using some physical address but it
 didn't match with the  corresponding the virtual address in the driver code.
 
 What was surprising here is that even though only a fraction of the packet
-buffers were working (e.g., were correctly visible on both device and driver),
+buffers were working (e.g., were correctly visible in both device and driver),
 the system still "worked", thanks to the all robustness (retransmission, error
 checking etc.) built into TCP/IP. It just had really terrible performance.
 
@@ -257,18 +255,18 @@ allocation scheme in the kernel, I added the error message in
 `rumpcomp_pci_dmalloc` to indicate that this should be fixed later for buffers
 larger than 4 KiB (cutting a corner).
 
-However, fixing it wasn't a top priority at the time: we had to bring up the
+However, fixing it wasn't a top priority at the time: we wanted to bring up the
 system without drivers anyways first. So instead of using an assert, logging an
 error was a better way to make progress on other parts of the system.
-Unfortunately, this error message was then forgotten about only to be
+Unfortunately, after a while this error message just forgotten about only to be
 rediscovered later in a pile of other log messages.
 
-Once I fixed the bug, redis achieved 24k GET requests per second. That was a
-quick 325x improvement! It took getting rid of 2-3 other bugs to go past a
+Once I fixed the bug, redis jumped from 76 to 24k GET requests per second. That
+was a quick 325x improvement! It took getting rid of 2-3 other bugs to go past a
 million, but those are a story for another time.
 
-[^1]: For simplicity, we assume no IOMMU.
-[^3]: Given how our stack based allocator worked it would still, with non-negligible probability, have some other frames in there that would align but there were no guarantees for that.
+[^1]: For simplicity, we ignore the IOMMU here.
+[^3]: Given how our stack based allocator worked it would, with high chance, often have some other frames in there that would align but there were no guarantees for that.
 
 [0]: https://github.com/rumpkernel "Rump Kernels"
 [1]: https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf "Rumpkernel PhD thesis"
