@@ -31,14 +31,14 @@ implementing POSIX is a huge undertaking and our resources were limited.
 Fortunately, this problem was solved by a project called [rumpkernels][0] -- a
 NetBSD libOS. A libOS is a fancy term for a library that contains an entire
 operating system (in this case NetBSD). I'm not going into [too many details][1]
-here, but the way it works is that you'll end up implementing a minimal (~50)
-set of [functions][2] (they call it hypercalls) which abstract away the
+here, but the way it works is that you'll end up implementing a minimal set of
+[functions][2] (around 50, called hypercalls in rump) which abstract away the
 underlying machine. In return, you'll get all the NetBSD code (kernel and
 user-space) running inside your process: So instead of implementing a TCP/IP
 stack, disk and network drivers, libpthread and libc, you just have to implement
-these ~50, arguably pretty basic, functions. The functions comprise of some
-low-level memory management, timers, scheduling, and locking. It's great
-trade-off, especially since we already had most of that.
+these ~50, arguably pretty basic, functions which primarily deal with low-level
+memory management, timers, scheduling, and locking. It's a great trade-off,
+especially since we already had most of that.
 
 ### 76 Requests?
 
@@ -125,8 +125,8 @@ implementation. I instrumented most of them but to no avail. They didn't take up
 any significant amount of time during the execution.
 
 Finally, I blamed rump itself (always good to blame others when desperate). But
-running the original rumpkernel as a unikernel in a VM revealed it does indeed
-work as intended and I should easily get millions of GETs per second.
+running the original rumpkernel running as a unikernel in a VM revealed it does
+indeed work as intended with millions of GETs per second.
 
 What got me on the right track eventually was the fact that pinging the
 interface also showed the same anomaly (latency jumps between 5 and 0.9 ms):
@@ -154,7 +154,7 @@ wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
 wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
 ```
 
-`wm0` is our network device (an e1000 PCIe NIC emulated by QEMU here). The
+`wm0` is our network device (a e1000 PCIe NIC emulated by QEMU here). The
 device timeout message is due to a [watchdog timer expiring in the NetBSD driver
 code][4]. At this stage, I was still confused. Why would the device not work
 correctly for me? It definitely works with any other OS. The bug must be
@@ -163,18 +163,21 @@ somewhere in my implementation, but where?
 
 ### rumpcomp_pci_dmalloc
 
-I started to piece things together when I finally noticed the following message in the log:
+I started to piece things together when I finally noticed the following message
+in the log: 
 `[ERROR] - vibrio::rumprt::dev: rumpcomp_pci_dmalloc size=65536 alignment=4096`
 
 rumpcomp_pci_dmalloc is one of the required hypercalls. It's used by the NetBSD
 kernel (and its device drivers) to allocate DMA memory which can be read and
-written to by devices. Such memory is special because we need to know the
-underlying physical address of the allocated buffer. This is because a device
-does not use virtual addresses (like our process) and ends up referring to
-memory by its physical address. A device driver must therefore program a device
-using physical addresses.
+written to by device drivers *and* the devices. This is important because the
+device eventually needs to write incoming packets somewhere into memory or read
+outgoing packets from memory (using [DMA][5]). DMA memory is a bit special
+because we need to know the underlying physical address of the allocated buffer.
+This is because a device does not use virtual addresses (like our process), and
+ends up referring to memory by physical addresses[^1].
 
-Looking at our rumpcomp_pci_dmalloc function, nothing is obviously wrong with it:
+Looking at our rumpcomp_pci_dmalloc function, nothing is obviously wrong with
+it:
 
 ```rust
 #[no_mangle]
@@ -186,7 +189,7 @@ pub unsafe extern "C" fn rumpcomp_pci_dmalloc(
 ) -> c_int {
     let layout = Layout::from_size_align_unchecked(size, alignment);
     if size > 4096 {
-        error!("rumpcomp_pci_dmalloc size={} alignment={}");
+        error!("rumpcomp_pci_dmalloc size={} alignment={}", size, alignment);
     }
 
     let mut p = crate::mem::PAGER.lock();
@@ -202,49 +205,75 @@ pub unsafe extern "C" fn rumpcomp_pci_dmalloc(
 }
 ```
 
-In short, the function takes a size and alignment argument to allocate a
-physically and virtually contiguous buffer. It then expects us to write the
+In short, the function takes a size and alignment argument to allocate a buffer
+that is *physically and virtually contiguous*. It then expects us to write the
 corresponding physical and virtual start address of the new buffer into `pptr`
 and `vptr`.
 
 Notice the innocent error message that gets printed if size is >4096? Remember
 the shortcuts I talked about in the beginning? Well here is one that was taken
-early on and then forgotten about: What happens is that `(*p).allocate(layout)`
-eventually calls the kernel, which has to allocate memory, map it into our
-address space and return the virtual (`vaddr`) and physical (`paddr`) to it. If
-the size of the buffer is exactly 4 KiB everything worked fine. However, if the
-size of the buffer was a multiple of 4 KiB it would allocate a virtually
-contiguous buffer, but not necessarily one that was physically contiguous (given
-how our kernel allocator works it would still often be partially contiguous --
-but no guarantee for that). The driver would take the `paddr` and pass it on to
-the device which happily wrote packets to the buffer thinking this buffer was
-beginning at `paddr` and was 65536 bytes long. However, the network stack on the
-software side only saw partial packets: Whenever the packet was written by the
-device in the first 4 KiB it was received. Otherwise, the packet ended up
-somewhere else in physical memory which was not corresponding to the virtual
-buffer in the process[^1].
+early on and then forgotten about:
 
-What's somewhat surprising here is that even though only a fraction of the
-packet buffers were working (e.g., were correctly visible on both device and
-driver), the system still kind of worked (thanks to the robustness of TCP). It
-just had terrible performance.
+The interesting logic happens in `(*p).allocate(layout)`. Eventually, this
+function calls into our kernel, which has to allocate memory, map it into our
+address space and return the virtual (`vaddr`) and physical (`paddr`) address to
+it. When this function was first implemented, our kernel used a [buddy
+allocator][6] to allocate physical memory. The buddy allocator would always
+return a physically consecutive region of memory, which the kernel mapped  as a
+virtually consecutive region by writing the page-table entries accordingly.
+Finally, it would return the physical start address and virtual start address of
+the buffer.
+
+The bug got introduced when sometime in the middle of implementing the
+hypercalls, the underlying kernel memory allocator changed: Rather than using a
+buddy allocator (which is fairly slow), an optimization got added that held a
+bunch of pages as 4 KiB frames on a stack to allocate from them quickly.
+However, the problem now was that these frames were no longer necessarily
+physically consecutive. For buffers larger than 4 KiB the kernel would happily
+pop off frames from the stack, add them together in virtual space, and then just
+return the physical address of the first page that got mapped as `paddr`.
+
+This meant that if the size of the buffer was exactly 4 KiB, everything was
+virtually and physically consecutive. For larger memory areas like the one
+allocated by the NIC driver (64 KiB), the returned `paddr` would only match for
+to the first 4 KiB of the buffer. Afterwards all bets were off[^3]. The driver
+would then take the buffer and slice it up into smaller packet buffers. The
+physical address of those individual buffers was calculated by taking the
+original `paddr` and adding a offset to it. What this meant for the system was
+that only a small percentage of the packet buffers were actually working. For
+the rest, the device would write to them using some physical address but it
+didn't match with the  corresponding the virtual address in the driver code.
+
+What was surprising here is that even though only a fraction of the packet
+buffers were working (e.g., were correctly visible on both device and driver),
+the system still "worked", thanks to the all robustness (retransmission, error
+checking etc.) built into TCP/IP. It just had really terrible performance.
 
 ### What went wrong?
 
-Just printing an error was a pretty terrible way to indicate that we're invoking
-something that's not supported here. At one point this was an assert (as it
-should have been). But during bring-up and testing, it got replaced with an
-error to make progress on other parts of the system, and then forgotten about
-only to be rediscovered later.
+The contract between the user-space allocator and the kernel allocator clearly
+broke when the kernel allocator got optimized. So, when I initially changed the
+allocation scheme in the kernel, I added the error message in
+`rumpcomp_pci_dmalloc` to indicate that this should be fixed later for buffers
+larger than 4 KiB (cutting a corner).
 
-Once I fixed the bug, I measured 24000 requests per second. That was a 325x
-improvement. It took getting rid of 2-3 other bugs to go past a million, but
-those were then easier to find.
+However, fixing it wasn't a top priority at the time: we had to bring up the
+system without drivers anyways first. So instead of using an assert, logging an
+error was a better way to make progress on other parts of the system.
+Unfortunately, this error message was then forgotten about only to be
+rediscovered later in a pile of other log messages.
 
-[^1]: A somewhat simplified explanation glossing over some details how the packet buffers are organized etc.
+Once I fixed the bug, redis achieved 24k GET requests per second. That was a
+quick 325x improvement! It took getting rid of 2-3 other bugs to go past a
+million, but those are a story for another time.
+
+[^1]: For simplicity, we assume no IOMMU.
+[^3]: Given how our stack based allocator worked it would still, with non-negligible probability, have some other frames in there that would align but there were no guarantees for that.
 
 [0]: https://github.com/rumpkernel "Rump Kernels"
 [1]: https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf "Rumpkernel PhD thesis"
 [2]: https://man.netbsd.org/NetBSD-8.0/i386/rumpuser.3 "rump kernel hypercall interface"
 [3]: https://redis.io/ "Redis key--value server"
 [4]: https://github.com/NetBSD/src/blob/1a75eb3d30e516d310e1482ba34fd1e65930c97b/sys/dev/pci/if_wm.c#L3274
+[5]: https://en.wikipedia.org/wiki/Direct_memory_access "Direct memory access"
+[6]: https://en.wikipedia.org/wiki/Buddy_memory_allocation "Buddy allocator"
