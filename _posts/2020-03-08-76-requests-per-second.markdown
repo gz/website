@@ -110,7 +110,7 @@ just being *really* slow (like 5+ seconds slow). What's going on?
 
 ### Debugging
 
-With prototypes OSes there is usually little support for debugging aside from
+With prototype OSes there is usually little support for debugging aside from
 printing and guessing. And its even harder if you're debugging performance.
 However, with 76 requests per second, there ought to be something seriously
 wrong here so this should be easy? I remember being puzzled for a while though:
