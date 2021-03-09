@@ -125,7 +125,7 @@ implementation. I instrumented most of them but to no avail. They didn't take up
 any significant amount of time during the execution.
 
 Finally, I blamed rump itself (always good to blame others when desperate). But
-running the original rumpkernel running as a unikernel in a VM revealed it does
+running the original rumpkernel as a unikernel in a VM revealed it does
 indeed work as intended with millions of GETs per second.
 
 What got me on the right track eventually was the fact that pinging the
