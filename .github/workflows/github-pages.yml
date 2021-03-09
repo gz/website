@@ -6,9 +6,6 @@ on:
       - master
 
 jobs:
-  build-latex:
-    runs-on: ubuntu-latest
-    steps:
   github-pages:
     runs-on: ubuntu-latest
     steps:
