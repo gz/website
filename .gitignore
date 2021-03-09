@@ -4,4 +4,5 @@ _site
 *.fls
 *.log
 *.synctex.gz
-cv/cv.pdf
+*.out
+cv.pdf
