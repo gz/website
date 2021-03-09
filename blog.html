@@ -3,11 +3,26 @@ layout: default
 title: Blog
 ---
 
-<div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
+<div id="home" class="clearfix">
+  <h2>Fantastic bugs and where to find them</h2>
+  <p>
+    In this blog, I write about hard to find bugs in low-level systems code which usually took me
+    days or sometimes even weeks to find.</br />
+    I hope you will find some joy in my suffering:
+  </p>
+
+  <div class="posts">
     {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+    <article class="post">
+
+      <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
+
+      <div class="entry">
+        {{ post.excerpt }}
+      </div>
+
+      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
+    </article>
     {% endfor %}
-  </ul>
+  </div>
 </div>
