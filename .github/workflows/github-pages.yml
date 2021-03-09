@@ -17,7 +17,7 @@ jobs:
       - name: Compile LaTeX document
         uses: dante-ev/latex-action@master
         with:
-          root_file: cv/resume.tex
+          root_file: cv/cv.tex
       - uses: helaili/jekyll-action@2.0.5
         env:
           JEKYLL_PAT: ${{ secrets.JEKYLL_PAT }}
