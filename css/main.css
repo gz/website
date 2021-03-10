@@ -1,5 +1,7 @@
 body {
   padding-top: 50px;
+  line-height: 1.75;
+  font-size: 1.9em;
 }
 
 kbd {
@@ -16,6 +18,4 @@ kbd {
 }
 
 .post {
-  line-height:  1.75;
-  font-size: 1.1em;
 }

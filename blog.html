@@ -3,26 +3,26 @@ layout: default
 title: Blog
 ---
 
-<div id="home" class="clearfix">
+<div class="clearfix">
   <h2>Fantastic bugs and where to find them</h2>
   <p>
     In this blog, I write about hard to find bugs in low-level systems code which usually took me
     days or sometimes even weeks to find.</br />
     I hope you will find some joy in my suffering:
   </p>
+</div>
 
-  <div class="posts">
-    {% for post in site.posts %}
-    <article class="post">
+<div class="posts">
+  {% for post in site.posts %}
+  <article class="post">
+    <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
+    <p class="meta"> Written on {{ post.date | date: "%B %e, %Y" }}</p>
 
-      <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
+    <div class="entry">
+      {{ post.excerpt }}
+    </div>
 
-      <div class="entry">
-        {{ post.excerpt }}
-      </div>
-
-      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
-    </article>
-    {% endfor %}
-  </div>
+    <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
+  </article>
+  {% endfor %}
 </div>
