@@ -258,7 +258,7 @@ larger than 4 KiB (cutting a corner).
 However, fixing it wasn't a top priority at the time: we wanted to bring up the
 system without drivers anyways first. So instead of using an assert, logging an
 error was a better way to make progress on other parts of the system.
-Unfortunately, after a while this error message just forgotten about only to be
+Unfortunately, after a while the error message just got forgotten, only to be
 rediscovered later in a pile of other log messages.
 
 Once I fixed the bug, redis jumped from 76 to 24k GET requests per second. That
