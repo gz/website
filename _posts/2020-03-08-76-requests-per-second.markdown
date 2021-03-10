@@ -240,7 +240,7 @@ The physical address of those individual buffers was calculated by taking the
 original `paddr` and adding a offset to it. What this meant for the system was
 that only a small percentage of the packet buffers were actually working. For
 the rest, the device would write to them using some physical address but it
-didn't match with the  corresponding the virtual address in the driver code.
+didn't match with the corresponding virtual address in the driver code.
 
 What was surprising here is that even though only a fraction of the packet
 buffers were working (e.g., were correctly visible in both device and driver),
