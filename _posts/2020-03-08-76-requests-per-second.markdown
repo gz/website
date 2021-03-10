@@ -176,7 +176,10 @@ somewhere in my implementation, but where?
 
 I started to piece things together when I finally noticed the following message
 in the log: 
-`[ERROR] - vibrio::rumprt::dev: rumpcomp_pci_dmalloc size=65536 alignment=4096`
+
+```log
+[ERROR] - vibrio::rumprt::dev: rumpcomp_pci_dmalloc size=65536 alignment=4096
+```
 
 rumpcomp_pci_dmalloc is one of the required hypercalls. It's used by the NetBSD
 kernel (and its device drivers) to allocate DMA memory which can be read and
