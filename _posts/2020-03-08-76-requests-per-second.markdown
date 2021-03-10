@@ -124,12 +124,22 @@ My next suspicion was that I must have messed up some of the locking
 implementation. I instrumented most of them but to no avail. They didn't take up
 any significant amount of time during the execution.
 
+I also carefully inspected the scheduler and it's run queues. Maybe the right
+threads just weren't running because of a bug in the scheduling algorithm? I
+didn't find anything wrong with it tough, the system was happily running all
+kinds of different threads at different times.
+
+Interrupts were another potential culprit: Maybe they didn't arrive or they
+didn't work properly. I dismissed the theory when I verified that the interrupt
+handler did indeed get invoked properly by pinging the system.
+
 Finally, I blamed rump itself (always good to blame others when desperate). But
-running the original rumpkernel as a unikernel in a VM revealed it does
-indeed work as intended with millions of GETs per second.
+running the original rumpkernel as a unikernel in a VM revealed it does indeed
+work as intended with millions of GETs per second.
 
 What got me on the right track eventually was the fact that pinging the
-interface also showed the same anomaly (latency jumps between 5 and 0.9 ms):
+interface also showed a similar anomaly with latency (although with less total
+variance).
 
 ```
 $ ping 172.31.0.10
@@ -145,8 +155,9 @@ Ping uses ICMP requests, which are handled quite differently from TCP or UDP
 packets. I figured the issue must be somewhere deep down in the device driver,
 or device itself.
 
-At one point, I also didn't immediately kill the system and let it run for a
-longer time. That's when I saw some concerning errors in the serial log:
+At one point, I didn't quickly kill the system and let `ping` run for a longer
+time. That's when I saw some concerning errors in the serial log (and at the
+same time the ping messages suddenly stopped arriving):
 
 ```
 wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
