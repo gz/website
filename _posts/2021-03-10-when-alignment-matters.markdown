@@ -31,10 +31,10 @@ be put in and out of the run queues etc.
 
 ### Locking gone wrong
 
-[Last time][0] we were in the process of porting redis to our OS. This time I
-was trying to port a second application, namely [memcached][3]. It was a good
-test because in comparison to redis, memcached was multi-threaded. So it
-exercised a lot more code-paths than redis.
+[Last time][0] we were in the process of porting Redis to our OS. This time I
+was trying to port a second application, namely [memcached][2]. It was a good
+test because in comparison to Redis, memcached was multi-threaded. So it
+exercised a lot more code-paths than Redis.
 
 When trying to launch memcached, it became apparent that the process very often
 ended up stuck somewhere during initialization and didn't make progress anymore.
@@ -67,7 +67,7 @@ completed... It isn't surprising that I spent a lot of time trying to find the
 bug somewhere in my implementation of those APIs. A problem there could easily
 lead to threads not being woken up or put to sleep incorrectly  (which in turn
 meant someone else might end up waiting on a lock forever). However, as much as
-I wanted to find the bug there, it just wasn't.
+I wanted to find the bug there, it just wasn't there.
 
 ### Tagged pointers
 
@@ -191,9 +191,11 @@ bug:
   doubt I was consciously aware of the alignment restriction when I wrote that
   `malloc` function anyways)
 
-- libpthread would be more robust if it used the high bits in the pointer for
+- libpthread would be more robust if it used the high bits[^1] in the pointer for
   tagging rather than the first four (this would prevent alignment issues, but
   might cause other bugs more easily)
+
+[^1]: On current x86-64 machines, virtual addresses do not use the [full 64 bits available][12].
 
 [0]: https://gerdzellweger.com/bugs/2020/03/08/76-requests-per-second.html "76 requests per second"
 [1]: https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf "Rumpkernel PhD thesis"
@@ -207,3 +209,4 @@ bug:
 [9]: https://github.com/NetBSD/src/blob/ba908cc6df5309a877172334358b7f3103294e18/lib/libpthread/pthread_int.h#L314 "pthread_int.h"
 [10]: https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.alloc "GlobalAlloc::alloc()"
 [11]: https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.dealloc "GlobalAlloc::dealloc()"
+[12]: https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details "Virtual address space details"
