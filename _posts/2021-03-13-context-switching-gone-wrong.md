@@ -162,10 +162,9 @@ which can include some or all general-purpose registers, the SIMD and floating
 point state, as well as the aforementioned RFLAGS register. Context-switching
 usually can be executed only through a series of assembly statements.
 
-Here is a code-snippet that stores the CPU state to some memory region when an
-interrupt happens (it misses a register, can you spot it?). A memory region,
-accessed through `%rax`, is used to move the CPU register contents to a
-process-specific save area.
+Here is a code-snippet that stores the CPU state when an interrupt happens (it
+misses a register, can you spot it?). A memory region, accessed through `%rax`,
+is used to move the CPU register contents to a process-specific save area.
 
 ```asm
 // Interrupt execution starts here...
@@ -276,13 +275,13 @@ save area in the first snippet. This meant that every time we returned from an
 interrupt it would use an outdated `RFLAGS` (the one which remained from the
 last time the process did a system call). 
 
-Going back to our branches example from earlier: Imagine an interrupt happens
+Going back to our branch example from earlier: Imagine an interrupt happens
 after the CPU already executed `cmp` but just before it wanted to start
 executing `jne`. Instead of resuming execution at `jne` with the up-to-date
-`RFLAGS`, now we resumed with an outdated `RFLAGS` value that may or may not
-correspond to what `cmp` computed one instruction earlier. Therefore, without
-restoring `RFLAGS` properly, our branching became a seemingly random affair --
-depending on whether interrupts would happen or not and when :).
+`RFLAGS`, now we resume with an outdated `RFLAGS` value that may or may not
+correspond to what `cmp` computed one instruction earlier. Without restoring
+`RFLAGS` properly, our branching became a seemingly random affair -- depending
+on whether interrupts would happen or not and when :).
 
 
 [^1]: Another way would be through memory corruption, but that's not what was happening with this bug.
