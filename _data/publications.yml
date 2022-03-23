@@ -14,3 +14,77 @@
   location: Renton, USA
   date: April 2022
   pdf: papers/nsight-nsdi22.pdf
+
+- title: "Isolation in Rust: What is Missing?"
+  authors: [
+    "Anton Burtsev",
+    "Dan Appel",
+    "David Detweiler",
+    "Tianjiao Huang",
+    "Zhaofeng Li",
+    "Vikram Narayanan",
+    "Gerd Zellweger"
+  ]
+  conference: Proceedings of the 11th Workshop on Programming Languages and Operating Systems
+  shortcut: PLOS
+  location: Virtual
+  date: October 2021
+  pdf: papers/rust-plos21.pdf
+
+- title: "NrOS: Effective Replication and Sharing in an Operating System."
+  authors: [
+    "Ankit Bhardwaj",
+    "Chinmay Kulkarni",
+    "Reto Achermann",
+    "Irina Calciu",
+    "Sanidhya Kashyap",
+    "Ryan Stutsman",
+    "Amy Tai",
+    "Gerd Zellweger"
+  ]
+  conference: Proceedings of the 15th USENIX Symposium on Operating Systems Design and Implementation
+  shortcut: OSDI
+  location: Virtual
+  date: July 2021
+  pdf: papers/nros-osdi21.pdf
+  video: https://www.youtube.com/watch?v=BNlsYHxcahQ
+  slides: papers/nros-osdi21-slides.pdf
+  github: https://github.com/vmware-labs/node-replicated-kernel
+
+- title: "RedLeaf: Isolation and Communication in a Safe Operating System."
+  authors: [
+    "Vikram Narayanan",
+    "Tianjiao Huang",
+    "David Detweiler",
+    "Dan Appel",
+    "Zhaofeng Li",
+    "Gerd Zellweger",
+    "Anton Burtsev",
+  ]
+  conference: Proceedings of the 14th USENIX Symposium on Operating Systems Design and Implementation
+  shortcut: OSDI
+  location: Virtual
+  date: November 2020
+  pdf: papers/redleaf-osdi20.pdf
+  video: https://www.youtube.com/watch?v=MKjliJWzs6w
+  github: https://github.com/mars-research/redleaf
+
+- title: "IOctopus: outsmarting nonuniform DMA."
+  authors: [
+    "Igor Smolyar",
+    "Alex Markuze",
+    "Boris Pismenny",
+    "Haggai Eran",
+    "Gerd Zellweger",
+    "Austin Bolen",
+    "Liran Liss",
+    "Adam Morrison",
+    "Dan Tsafrir",
+  ]
+  conference: Proceedings of the 25th International Conference on Architectural Support for Programming Languages and Operating Systems
+  shortcut: ASPLOS
+  location: Lausanne, CH
+  date: March 2020
+  pdf: papers/ioctopus-asplos20.pdf
+  video: https://www.youtube.com/watch?v=RXBYjiVdsY8
+  best_paper: true
