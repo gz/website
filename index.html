@@ -4,7 +4,7 @@ title: Gerd Zellweger
 ---
 
 <div class="clearfix">
-  <h2>Welcome</h2>
+  <br />
   <div class="pull-right">
     <img src="/img/gerd.jpg" alt="Profile Picture" width="140px" class="img-rounded img-responsive" />
   </div>
@@ -41,14 +41,16 @@ title: Gerd Zellweger
 
 <h3>Latest Publications</h3>
 <ul class="unstyled">
+
+  {% for pub in site.data.publications %}
   <li>
-    <a href="papers/nsight-nsdi22.pdf"><i class="fa fa-file-pdf-o"></i></a>
-    <strong>How to diagnose nanosecond network latencies in rich end-host stacks</strong>
-    Roni Haecki, Radhika Niranjan Mysore, Lalith Suresh, Gerd Zellweger, Bo Gan, Timothy Merrifield, Sujata Banerjee,
-    Timothy Roscoe.
-    Proceedings of the 19th USENIX Symposium on Networked Systems Design and Implementation (NSDI, Renton, USA, April
-    2022).
+    {% if pub.pdf %}<a href="{{ pub.pdf }}"><i class="fa fa-file-pdf-o"></i></a> {% endif %}
+    <strong>{{ pub.title }}</strong>
+    {{ pub.authors | join: ", "}}.
+    {{ pub.conference }} ({{ pub.shortcut }}, {{ pub.location }}, {{ pub.date }})
+    </a>
   </li>
+  {% endfor %}
 
   <li>
     <a href="papers/rust-plos21.pdf"><i class="fa fa-file-pdf-o"></i></a>
