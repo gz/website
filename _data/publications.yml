@@ -88,3 +88,88 @@
   pdf: papers/ioctopus-asplos20.pdf
   video: https://www.youtube.com/watch?v=RXBYjiVdsY8
   best_paper: true
+
+- title: "So many performance events, so little time."
+  authors: [
+    "Gerd Zellweger",
+    "Denny Lin",
+    "Timothy Roscoe",
+  ]
+  conference: Proceedings of the 7th Asia-Pacific Workshop on Systems
+  shortcut: APSys
+  location: Hong Kong, China
+  date: August 2016
+  pdf: papers/glatt-apsys16.pdf
+
+- title: "Customized OS support for data processing."
+  authors: [
+    "Jana Giceva",
+    "Gerd Zellweger",
+    "Gustavo Alonso",
+    "Timothy Roscoe",
+  ]
+  conference: Proceedings of the 12th International Workshop on Data Management on New Hardware
+  shortcut: DaMoN
+  location: San Francisco, USA
+  date: August 2016
+  pdf: papers/customizedos-damon16.pdf
+
+- title: "Basslet: an OS runtime for parallel data processing."
+  authors: [
+    "Jana Giceva",
+    "Gerd Zellweger",
+    "Gustavo Alonso",
+    "Timothy Roscoe",
+  ]
+  conference: In the 2016 Workshop on Multicore and Rack-scale Systems
+  shortcut: MaRS
+  location: London, UK
+  date: April 2016
+  pdf: papers/basslet-mars16.pdf
+
+- title: "SpaceJMP: Programming with Multiple Virtual Address Spaces."
+  authors: [
+    "Izzat El Hajj",
+    "Alexander Merritt",
+    "Gerd Zellweger",
+    "Dejan Milojicic",
+    "Reto Achermann",
+    "Paolo Faraboschi",
+    "Wen-mei Hwu",
+    "Timothy Roscoe",
+    "Karsten Schwan"
+  ]
+  conference: Proceedings of the 21th International Conference on Architectural Support for Programming Languages and Operating Systems
+  shortcut: ASPLOS
+  location: Atlanta, USA
+  date: April 2016
+  pdf: papers/spacejmp-asplos16.pdf
+
+- title: "Not Your Parents' Physical Address Space."
+  authors: [
+    "Simon Gerber",
+    "Gerd Zellweger",
+    "Reto Achermann",
+    "Kornilios Kourtis",
+    "Timothy Roscoe",
+    "Dejan Milojicic"
+  ]
+  conference: Proceedings of the 15th Workshop on Hot Topics in Operating Systems
+  shortcut: HotOS
+  location: Kartause Ittingen, CH
+  date: May 2015
+  pdf: papers/physical-spaces-hotos15.pdf
+
+- title: "Decoupling Cores, Kernels, and Operating Systems."
+  authors: [
+    "Gerd Zellweger",
+    "Simon Gerber",
+    "Reto Achermann",
+    "Kornilios Kourtis",
+    "Timothy Roscoe"
+  ]
+  conference: Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation
+  shortcut: OSDI
+  location: Broomfield, USA
+  date: October 2014
+  pdf: papers/decoupling-cores-osdi14.pdf
