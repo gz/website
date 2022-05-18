@@ -1,3 +1,18 @@
+- title: Cache-coherent Accelerators for Persistent Memory Crash-consistency
+  authors: [
+    "Ankit Bhardwaj",
+    "Todd Thornley",
+    "Vinita Pawar",
+    "Reto Achermann",
+    "Bo Gan",
+    "Gerd Zellweger",
+    "Ryan Stutsman"
+  ]
+  conference: Proceedings of the 14th ACM Workshop on Hot Topics in Storage and File Systems (HotStorage '22)
+  shortcut: HotStorage
+  location: Virtual
+  date: June 2022
+
 - title: How to diagnose nanosecond network latencies in rich end-host stacks.
   authors: [
     "Roni Haecki",
