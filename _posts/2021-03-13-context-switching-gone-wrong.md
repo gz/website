@@ -29,13 +29,20 @@ for _i in 0..nop {
 ```
 
 Since we end up doing modulo two on our `op` variable, the only values we ever
-expect to see is 0 or 1 in that match statement. However, the rust compiler (and
-pretty much every other compiler I'm aware of) isn't smart enough to determine
-this and still wants us to provide a wild-card pattern (using `_`), which
-provides an execution path for every number that is not 0 or 1. Because we
-determine this code-path can never be executed we end up putting an
-`unreachable!` statement there, which would just abort the program. That's
-perfectly fine because it's obvious to see that we never go there.
+expect to see is 0 or 1 in that match statement. However, the match statement
+in rust needs to be exhaustive and in some cases the rust compiler isn't able 
+to determine that only two scenarios are valid and so it still wants us 
+to provide a wild-card pattern (using `_`), which provides an execution path 
+for every number that is not 0 or 1. Because we determine this code-path can 
+never be executed we end up putting an `unreachable!` statement there, 
+which would just abort the program. That's perfectly fine because it's obvious 
+to see that we never go there.
+
+> Note aside, the current rust compiler does in-fact [eliminate the unreachable 
+> branch in release mode (but not in debug mode)](https://rust.godbolt.org/z/9aY3nq8nf).
+> Another way to write it is to replace the `1` with a `_` in the match statement
+> but this can lead to "hard-to-find bugs" if we change the expression
+> we're matching on later.
 
 Another (slightly weaker) form of such paths are "trivial" pre-conditions in the
 form of asserts. For example, here is such a pre-condition in C:
