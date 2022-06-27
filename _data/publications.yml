@@ -12,6 +12,7 @@
   location: Virtual
   date: June 2022
   pdf: papers/pcm-hotstorage22.pdf
+  best_paper: true
 
 - title: "How to diagnose nanosecond network latencies in rich end-host stacks."
   authors: [
