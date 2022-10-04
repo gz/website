@@ -1,3 +1,21 @@
+- title: "Sharding the State Machine: Automated Modular Reasoning for Complex Concurrent Systems."
+  authors: [
+    "Travis Hance",
+    "Yi Zhou",
+    "Andrea Lattuada",
+    "Reto Achermann",
+    "Alex Conway",
+    "Ryan Stutsman",
+    "Gerd Zellweger",
+    "Chris Hawblitzel",
+    "Jon Howell",
+    "Bryan Parno"
+  ]
+  conference: "Proceedings of the 17th USENIX Symposium on Operating Systems Design and Implementation"
+  shortcut: OSDI
+  location: Boston, USA
+  date: July 2023
+
 - title: "Cache-Coherent Accelerators for Persistent Memory Crash Consistency."
   authors: [
     "Ankit Bhardwaj",
