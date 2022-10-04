@@ -1,0 +1,812 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title></title>
+    <description></description>
+    <link>/</link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Tue, 04 Oct 2022 20:18:30 +0000</pubDate>
+    <lastBuildDate>Tue, 04 Oct 2022 20:18:30 +0000</lastBuildDate>
+    <generator>Jekyll v4.2.2</generator>
+    
+      <item>
+        <title>Context-switching gone wrong</title>
+        <description>&lt;p&gt;I remember while this bug wasn’t that hard to fix (or find), it still had some
+“fantastic” potential to it. Because, when it appeared, at first nothing made
+sense anymore…&lt;/p&gt;
+
+&lt;p&gt;When programming, it happens occasionally that you end up with a dead-end: A
+branch in the code that you determine will &lt;em&gt;never&lt;/em&gt; be taken by the CPU with
+absolute certainty. However, due to limitations in the language or the structure
+of your algorithm you can’t really avoid to account for it in the program.&lt;/p&gt;
+
+&lt;p&gt;An example can be a match statement like this one:&lt;/p&gt;
+
+&lt;div class=&quot;language-rust highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ops&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;with_capacity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_i&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orng&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.gen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;match&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ops&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;Operation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteOperation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;OpWr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt;
+        &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ops&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;Operation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteOperation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;OpWr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;orng&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.gen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))),&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nd&quot;&gt;unreachable!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Can only have 0 or 1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Since we end up doing modulo two on our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;op&lt;/code&gt; variable, the only values we ever
+expect to see is 0 or 1 in that match statement. However, the match statement
+in rust needs to be exhaustive and in some cases the rust compiler isn’t able 
+to determine that only two scenarios are valid and so it still wants us 
+to provide a wild-card pattern (using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_&lt;/code&gt;), which provides an execution path 
+for every number that is not 0 or 1. Because we determine this code-path can 
+never be executed we end up putting an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unreachable!&lt;/code&gt; statement there, 
+which would just abort the program. That’s perfectly fine because it’s obvious 
+to see that we never go there.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Note aside, the current rust compiler does in-fact &lt;a href=&quot;https://rust.godbolt.org/z/9aY3nq8nf&quot;&gt;eliminate the unreachable 
+branch in release mode (but not in debug mode)&lt;/a&gt;.
+Another way to write it is to replace the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt; with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_&lt;/code&gt; in the match statement
+but this can lead to “hard-to-find bugs” if we change the expression
+we’re matching on later.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Another (slightly weaker) form of such paths are “trivial” pre-conditions in the
+form of asserts. For example, here is such a pre-condition in C:&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;mutex_obj_hold&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kmutex_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kmutexobj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kmutexobj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;KASSERTMSG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo_magic&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MUTEX_OBJ_MAGIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;%s: lock %p: mo-&amp;gt;mo_magic (%#x) != MUTEX_OBJ_MAGIC (%#x)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;__func__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo_magic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MUTEX_OBJ_MAGIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;atomic_inc_uint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mo_refcnt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Essentially, the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KASSERTMSG&lt;/code&gt; is saying that in order to call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mutex_obj_hold&lt;/code&gt;
+the argument provided must be of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kmutexobj&lt;/code&gt;, which is validated in C by
+checking that the member &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mo_magic&lt;/code&gt; is set to the constant &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MUTEX_OBJ_MAGIC&lt;/code&gt;.
+This is a way to add some type robustness for a “loosely typed” language such as
+C. While this pre-condition can certainly be wrong, in practice this is rarely
+expected to happen. The only time this supposedly can fail is if someone just
+wrote some locking code and invoked this function with a wrong argument (aka a
+different type) or forgot to initialize the lock&lt;sup id=&quot;fnref:1&quot; role=&quot;doc-noteref&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;branching-into-the-unreachable&quot;&gt;Branching into the unreachable&lt;/h3&gt;
+
+&lt;p&gt;As you can probably guess, the manifestation of the bug in this post was that
+the execution of a program would suddenly end up in such code-paths by taking
+these “impossible” branches. Which meant for the first example, that it could
+suddenly fail with&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-log&quot;&gt;thread 'main' panicked at 'internal error: entered unreachable code: Can only be 0 or 1', src/main.rs:6:5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And, because that wasn’t weird enough, the bug also wasn’t deterministic: Most
+of the time the program would work “just fine”, but every so often the code
+would abort due to some random &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;assert&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;panic&lt;/code&gt;, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unreachable!&lt;/code&gt; statement.
+Upon inspection they always turned out to be unlikely or impossible things which
+now suddenly happened at an alarming rate.&lt;/p&gt;
+
+&lt;p&gt;To understand this a bit better, we have to refresh some knowledge about CPU
+assembly language (we use x86) to see what’s really going on under the hood.
+It’s important to understand that our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;match&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KASSERT&lt;/code&gt; example will
+eventually be rewritten using just a bunch of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if&lt;/code&gt; statements by the compiler:&lt;/p&gt;
+
+&lt;div class=&quot;language-rust highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ops&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;Operation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteOperation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;OpWr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ops&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;Operation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteOperation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;OpWr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;orng&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.gen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())));&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;unreachable!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Can only have 0 or 1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Afterwards, the code is further simplified into comparisons (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt;) and branch
+instructions (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jmp&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt; etc.) when converted to x86 assembly. To explain, we
+show the assembly code for the first if statement, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if op % 2 == 0&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-asm&quot;&gt;and     rax, 1
+cmp     rax, 0
+jne     .LBB126_3
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The first instruction does a bitwise &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;and&lt;/code&gt; with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;op&lt;/code&gt; (in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rax&lt;/code&gt;) and the constant
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt; (calculates &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;op % 2&lt;/code&gt; by taking the first bit of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;op&lt;/code&gt; and stores this in
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rax&lt;/code&gt;), then it compares the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rax&lt;/code&gt; to 0 using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt;, and finally if &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rax&lt;/code&gt;
+contained something not 0, it will jump to another location (e.g., to the label
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.LBB126_3&lt;/code&gt;). However, if it was 0 it will continue with the next instruction
+after &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;One thing that’s important to understand here is that there is an implicit
+dependency between the result of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt; that is not directly visible:
+Since &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt; needs to jump (or not) based on the result of the previous &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt;
+instruction, it needs to access its result somehow. On x86, the CPU has a
+special register called &lt;a href=&quot;https://en.wikipedia.org/wiki/FLAGS_register&quot; title=&quot;RFlags Register&quot;&gt;RFLAGS&lt;/a&gt; for this purpose. What happens is that the
+&lt;a href=&quot;https://www.felixcloutier.com/x86/cmp&quot; title=&quot;CMP Instruction on x86&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt;&lt;/a&gt; instruction will subtract the second operand (0) from the first
+operand (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rax&lt;/code&gt;) and then set flags in RFLAGS based on the result of the
+subtraction. For example, the Zero Flag (which is the one important for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt;),
+is set to 1 if the subtraction performed by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt; results in zero. This means
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt; just needs to inspect the Zero Flag in RFLAGS: if it is set it won’t jump
+because the compared values were equal, but if it remained unset it will jump to
+the specified location.&lt;/p&gt;
+
+&lt;h3 id=&quot;locating-the-issue&quot;&gt;Locating the issue&lt;/h3&gt;
+
+&lt;p&gt;So what went wrong with our code? Why would the CPU suddenly take those odd
+branches that led nowhere? Assuming our branch logic in the CPU wasn’t broken,
+surely the bug must be in the software somewhere?&lt;/p&gt;
+
+&lt;p&gt;As always there were a couple of options where this bug could be located: For
+example, since we wrote our own ELF parsing and loading library, if something
+was messed up in there about how instructions get loaded or relocated it could
+definitely become a problem. This seemed unlikely though since the bug only
+affected branches and also wasn’t deterministic.&lt;/p&gt;
+
+&lt;p&gt;What really helped was when I eventually figured out that this bug only happened
+on CPU cores were the OS received interrupts during execution. That limited the
+scope of the bug to anything that would happen in the interrupt handler. To
+isolate further, I downsized the interrupt handler by removing all program logic
+in it (aside from restoring the context). When afterwards the bug was still
+present, I knew it must be in the context restore logic.&lt;/p&gt;
+
+&lt;p&gt;To explain this a bit more: The bread and butter of an operating system is to
+give an illusion to a program that it is running without any interruption on a
+CPU. In reality tough, an OS will context-switch many times per second to
+execute many different programs concurrently. One cause for a context switch can
+be interrupts: For example from a device, to notify when a packet is ready, or a
+timer to tell us that it might be time to run some other program now. To hold up
+the illusion, OS and hardware ideally must capture the exact state of the CPU
+when the interruption happens and restore back that exact state to resume
+execution of a program later.&lt;/p&gt;
+
+&lt;p&gt;There are two predominant ways to resume execution in user-space from a kernel
+on modern x86: &lt;a href=&quot;https://www.felixcloutier.com/x86/sysret&quot; title=&quot;SYSRET Instruction on x86&quot;&gt;sysret&lt;/a&gt; to return after a program made a syscall, and
+&lt;a href=&quot;https://www.felixcloutier.com/x86/iret:iretd&quot; title=&quot;IRETQ Instruction on x86&quot;&gt;iretq&lt;/a&gt; to return after an interrupt. Both need to restore the CPU context
+which can include some or all general-purpose registers, the SIMD and floating
+point state, as well as the aforementioned RFLAGS register. Context-switching
+usually can be executed only through a series of assembly statements.&lt;/p&gt;
+
+&lt;p&gt;Here is a code-snippet that stores the CPU state when an interrupt happens (it
+misses a register, can you spot it?). A memory region, accessed through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;%rax&lt;/code&gt;,
+is used to move the CPU register contents to a process-specific save area.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-asm&quot;&gt;// Interrupt execution starts here...
+
+// Save original %rax temporarily on the stack 
+// because we will overwrite it to hold a reference to save area
+pushq %rax
+
+// First, get the pointer to the register save area
+rdgsbase %rax
+movq 0x8(%rax), %rax
+
+// Save CPU general-purpose register context
+// We don't save %rax yet since we used it to
+// reference the save area location
+movq %rbx,  1*8(%rax)
+movq %rcx,  2*8(%rax)
+movq %rdx,  3*8(%rax)
+movq %rsi,  4*8(%rax)
+movq %rdi,  5*8(%rax)
+movq %rbp,  6*8(%rax)
+// We don't save %rsp yet since it is overridden by CPU on irq entry
+movq %r8,   8*8(%rax)
+movq %r9,   9*8(%rax)
+movq %r10, 10*8(%rax)
+movq %r11, 11*8(%rax)
+movq %r12, 12*8(%rax)
+movq %r13, 13*8(%rax)
+movq %r14, 14*8(%rax)
+movq %r15, 15*8(%rax)
+
+// Save original rax, which we pushed on the stack previously
+popq %r15
+movq %r15, 0*8(%rax)
+
+// Save %rsp of interrupted process
+movq 5*8(%rsp), %r15
+movq %r15, 7*8(%rax)
+
+// Save RIP were we were at before we got interrupted
+// This is at rsp+16 (put there by the hardware):
+movq 2*8(%rsp), %r15
+movq %r15, 16*8(%rax)
+
+// Saves the fs register
+rdfsbase %r15
+movq %r15, 19*8(%rax)
+
+// Save vector registers
+fxsave 24*8(%rax)
+
+// Move on to high-level language function
+callq handle_generic_exception
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And here is the “opposite” code-snippet that restores the CPU context again
+(from the save area, now in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;%rdi&lt;/code&gt;) and returns to the interrupted program using
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;iretq&lt;/code&gt; (this example doesn’t miss anything and is correct):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-asm&quot;&gt;// Restore fs and gs registers
+swapgs
+movq 19*8(%rdi), %rsi
+wrfsbase %rsi
+
+// Restore SIMD/vector registers
+fxrstor 24*8(%rdi)
+
+// Restore general-purpose CPU registers
+movq  0*8(%rdi), %rax
+movq  1*8(%rdi), %rbx
+movq  2*8(%rdi), %rcx
+movq  3*8(%rdi), %rdx
+movq  4*8(%rdi), %rsi
+// %rdi: Restored last (see below) to preserve `save_area`
+movq  6*8(%rdi), %rbp
+// %rsp: Restored through `iretq` (see below)
+movq  8*8(%rdi), %r8
+movq  9*8(%rdi), %r9
+movq 10*8(%rdi), %r10
+movq 11*8(%rdi), %r11
+movq 12*8(%rdi), %r12
+movq 13*8(%rdi), %r13
+movq 14*8(%rdi), %r14
+movq 15*8(%rdi), %r15
+
+// Stack segment register
+pushq 18*8(%rdi)
+// %rsp stack register
+pushq 7*8(%rdi)
+// RFLAGS register
+pushq 17*8(%rdi)
+// Code segment register
+pushq 19*8(%rdi)
+
+// Instruction pointer
+pushq 16*8(%rdi)
+
+// Restore `rdi` register last, since it was used to reach `save_area`
+movq 5*8(%rdi), %rdi
+
+// And back we go:
+iretq
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The bug in this case was that we simply forgot to ever store &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RFLAGS&lt;/code&gt; to the
+save area in the first snippet. This meant that every time we returned from an
+interrupt it would use an outdated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RFLAGS&lt;/code&gt; (the one which remained from the
+last time the process did a system call).&lt;/p&gt;
+
+&lt;p&gt;Going back to our branch example from earlier: Imagine an interrupt happens
+after the CPU already executed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt; but just before it wanted to start
+executing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt;. Instead of resuming execution at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jne&lt;/code&gt; with the up-to-date
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RFLAGS&lt;/code&gt;, now we resume with an outdated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RFLAGS&lt;/code&gt; value that may or may not
+correspond to what &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmp&lt;/code&gt; computed one instruction earlier. Without restoring
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RFLAGS&lt;/code&gt; properly, our branching became a seemingly random affair – depending
+on whether interrupts would happen or not and when :).&lt;/p&gt;
+
+&lt;div class=&quot;footnotes&quot; role=&quot;doc-endnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot; role=&quot;doc-endnote&quot;&gt;
+      &lt;p&gt;Another way would be through memory corruption, but that’s not what was happening with this bug. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot; role=&quot;doc-backlink&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Sat, 13 Mar 2021 12:11:11 +0000</pubDate>
+        <link>/bugs/2021/03/13/context-switching-gone-wrong.html</link>
+        <guid isPermaLink="true">/bugs/2021/03/13/context-switching-gone-wrong.html</guid>
+        
+        
+        <category>bugs</category>
+        
+      </item>
+    
+      <item>
+        <title>When alignment matters</title>
+        <description>&lt;p&gt;Some bugs are hard to find because when they manifest, they do so in a very
+misleading way. This one is about fairly unexpected consequences when things
+aren’t properly aligned. Most of the time alignment problems lead to “just” bad
+performance. In some other cases, hardware architectures may generate a fault on
+misaligned accesses (but this is easy to pin-point and fix). However, in our
+case the problem was a little more subtle.&lt;/p&gt;
+
+&lt;p&gt;We were trying to run some more applications on our new research OS. If you
+haven’t read the &lt;a href=&quot;https://gerdzellweger.com/bugs/2020/03/08/76-requests-per-second.html&quot; title=&quot;76 requests per second&quot;&gt;previous post&lt;/a&gt;: We had a new kernel that we built from
+scratch and our user-space processes ran with a small libOS that we wrote from
+scratch too. Basically, we had a lot of code which was fairly new, and bugs had
+to be expected anywhere.&lt;/p&gt;
+
+&lt;p&gt;For example, our user-space runtime – the victim of the bug in this post –
+contained a custom built memory allocator, user-space scheduler and a system
+call abstraction for the kernel. In addition, it provided the lowest layer (the
+hypercalls) that allowed a process to also link with &lt;a href=&quot;https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf&quot; title=&quot;Rumpkernel PhD thesis&quot;&gt;rumpkernel&lt;/a&gt;. rumpkernel
+is a library OS built on NetBSD that gave a lot of POSIX support to a process.
+Most importantly for this post, it came with an implementation of libpthread.
+The way it worked was that libpthread provided an implementation of all the
+pthread APIs, but underneath it would call into our own custom scheduler
+(through the hypercalls), to create new threads and control which threads would
+be put in and out of the run queues etc.&lt;/p&gt;
+
+&lt;h3 id=&quot;locking-gone-wrong&quot;&gt;Locking gone wrong&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://gerdzellweger.com/bugs/2020/03/08/76-requests-per-second.html&quot; title=&quot;76 requests per second&quot;&gt;Last time&lt;/a&gt; we were in the process of porting Redis to our OS. This time I
+was trying to port a second application, namely &lt;a href=&quot;https://memcached.org/&quot; title=&quot;memcached key--value server&quot;&gt;memcached&lt;/a&gt;. It was a good
+test because in comparison to Redis, memcached was multi-threaded. So it
+exercised a lot more code-paths than Redis.&lt;/p&gt;
+
+&lt;p&gt;When trying to launch memcached, it became apparent that the process very often
+ended up stuck somewhere during initialization and didn’t make progress anymore.
+Unfortunately, it wasn’t really deterministic: Every time it would get stuck in
+a slightly different function (and loop). And sometimes it even worked:
+memcached started and waited for incoming connections – great!&lt;/p&gt;
+
+&lt;p&gt;In such a scenario, a systems programmer will immediately think of two potential
+classes of bugs: (1) a memory corruption: for example a stack corruption or a
+buffer overflow could cause the program to wait in some loop forever. (2) a
+locking issue: e.g., a deadlock or a race due to improper locking.&lt;/p&gt;
+
+&lt;p&gt;After getting stuck a few times, I started to notice that most of the times when
+execution came to a halt, it was in one of the pthread locking functions.
+Therefore, I expected a problem with locking. However, I trusted that memcached
+would use pthread locks correctly and that libpthread (which came from NetBSD)
+was correct too. What I certainly didn’t have much faith in was my scheduler or
+the integration of libpthread with it. Memory corruption wasn’t high on my list
+because most of our code was written in Rust and so we experienced very few
+memory bugs, if at all.&lt;/p&gt;
+
+&lt;p&gt;For libpthread to work with our scheduler, I had to provide a &lt;a href=&quot;https://man.netbsd.org/_lwp_create.2&quot; title=&quot;_lwp_create man page&quot;&gt;series&lt;/a&gt;
+&lt;a href=&quot;https://man.netbsd.org/_lwp_unpark_all.2&quot; title=&quot;_lwp_unpark_all man page&quot;&gt;of&lt;/a&gt; &lt;a href=&quot;https://man.netbsd.org/_lwp_self.2&quot; title=&quot;_lwp_self man page&quot;&gt;low-level&lt;/a&gt; &lt;a href=&quot;https://man.netbsd.org/_lwp_ctl.2&quot; title=&quot;_lwp_ctl man page&quot;&gt;APIs&lt;/a&gt;. These functions were prefixed with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_lwp&lt;/code&gt;,
+which stands for light-weight process. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_lwp&lt;/code&gt; APIs can be a fairly complex
+affair to get right: For example &lt;a href=&quot;https://man.netbsd.org/_lwp_park.2&quot; title=&quot;_lwp_park man page&quot;&gt;_lwp_park&lt;/a&gt; and &lt;a href=&quot;https://man.netbsd.org/_lwp_unpark.2&quot; title=&quot;_lwp_unpark man page&quot;&gt;_lwp_unpark&lt;/a&gt; are used to
+add threads and remove threads from the scheduler run-queue. In addition to
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_lwp_park&lt;/code&gt; having many different parameters, one must also be aware that in
+multi-threaded code, unpark can potentially arrive before park has even
+completed… It isn’t surprising that I spent a lot of time trying to find the
+bug somewhere in my implementation of those APIs. A problem there could easily
+lead to threads not being woken up or put to sleep incorrectly  (which in turn
+meant someone else might end up waiting on a lock forever). However, as much as
+I wanted to find the bug there, it just wasn’t there.&lt;/p&gt;
+
+&lt;h3 id=&quot;tagged-pointers&quot;&gt;Tagged pointers&lt;/h3&gt;
+
+&lt;p&gt;Through the debug process, I became more familiar with the locking APIs in
+NetBSD. I especially learned more about how pthreads worked internally than I
+really wanted to know. But, this proved to be crucial for figuring out what was
+wrong. What helped getting me on the right path was the following comment in
+&lt;a href=&quot;https://github.com/NetBSD/src/blob/ba908cc6df5309a877172334358b7f3103294e18/lib/libpthread/pthread_int.h#L314&quot; title=&quot;pthread_int.h&quot;&gt;pthread_int.h&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-comment&quot;&gt;Bits in the owner field of the lock that indicate lock state.  If the
+WRITE_LOCKED bit is clear, then the owner field is actually a count of
+the number of readers.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;What this comment meant to convey is that in case of a reader-writer lock the
+“owner field” (a 64 bit value) uses a bunch of bits (the first four) to indicate
+things about the lock’s state (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wait&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wrlock&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wrwant&lt;/code&gt;). If &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wrlock&lt;/code&gt; is
+set to 1, bits 4 to 63 point to an address where the owner struct resides, if
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wrlock&lt;/code&gt; is set to 0 the bits contain the amount of readers instead.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-comment&quot;&gt; N                              4        3        2        1        0
+ +------------------------------------------------------------------+
+ | owner or read count          | &amp;lt;free&amp;gt; | wrlock | wrwant |  wait  |
+ +------------------------------------------------------------------+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is a form of tagged pointers, which encodes a few bits of meta-data along
+with an address or count. The reason this works is because everything allocated
+by malloc, such as the owner struct, is expected to have (at least) a 16 byte
+alignment on our platform (so the first 4 bits of any pointer handed out by
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malloc&lt;/code&gt; are guaranteed to be zero). If one wants to dereference the owner
+pointer, libpthread just has to make sure to always mask out (set to zero) the
+lower 4 bits before dereferencing it.&lt;/p&gt;
+
+&lt;h2 id=&quot;malloc-and-free&quot;&gt;malloc() and free()&lt;/h2&gt;
+
+&lt;p&gt;As you can probably guess by now, the real culprit ended up being our malloc
+aligning everything to 8 instead of 16 bytes. This meant that our address to the
+owner would use the 4th bit, which was reserved for use by libpthread. Even
+though the bit wasn’t really in use, the pthread code would still clear the bit
+before a dereference, and thus change the base address for the owner struct
+slightly – which turned out to be quite confusing for the pthread code.&lt;/p&gt;
+
+&lt;p&gt;One last detail about this bug was that our underlying memory allocator was
+actually doing all the alignment correctly. However, our user-space runtime
+including the memory allocator was written in Rust. The bug was introduced when
+I wrote the wrapper code that converted the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malloc&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;free&lt;/code&gt; calls (as
+required by rumpkernel) to Rust’s &lt;a href=&quot;https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.alloc&quot; title=&quot;GlobalAlloc::alloc()&quot;&gt;alloc&lt;/a&gt; and &lt;a href=&quot;https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.dealloc&quot; title=&quot;GlobalAlloc::dealloc()&quot;&gt;dealloc&lt;/a&gt; interface.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.dealloc&quot; title=&quot;GlobalAlloc::dealloc()&quot;&gt;dealloc&lt;/a&gt; function – Rust’s equivalent of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;free(ptr)&lt;/code&gt; – takes a
+pointer &lt;em&gt;and&lt;/em&gt; a Layout (which encodes size and alignment information for the
+pointer). With pure Rust code, this is fine since the Rust compiler will insert
+the correct layout argument on deallocations. Hence, Rust allocators technically
+don’t need to manually keep track of the size of pointers handed out by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alloc&lt;/code&gt;
+(nice!). However to support &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malloc&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;free&lt;/code&gt; for C code, we need to at be
+able to find the size of a pointer when it is given back to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;free&lt;/code&gt; (which gets
+just the pointer as a single argument with no extra size or alignment). Memory
+allocators written for C often solve this problem by allocating a few bytes more
+than needed and storing the size of the block in the first few bytes of the
+newly allocated memory.&lt;/p&gt;
+
+&lt;p&gt;Here is our original (buggy) code, which prepends every block with an 8 byte
+header on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malloc&lt;/code&gt; to store the size, and then reads the size again during free.
+As you can see &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HEADER_SIZE&lt;/code&gt; is set to 8 bytes, which means our pointers we hand
+out are now aligned to 8 bytes (even though we requested a 16 byte alignment
+from the underlying allocator). The fix is to change &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HEADER_SIZE&lt;/code&gt; and/or
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALIGNMENT&lt;/code&gt; accordingly.&lt;/p&gt;
+
+&lt;div class=&quot;language-rust highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;pub&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HEADER_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;pub&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ALIGNMENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;cd&quot;&gt;/// Implementes malloc using the `alloc::alloc` interface.&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;/// We need to add a header to store the size for the&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;/// `free` and `realloc` implementation.&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;#[no_mangle]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;pub&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;unsafe&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extern&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;C&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c_size_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u8&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;trace!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;malloc {}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allocation_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u64&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HEADER_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;from_size_align_unchecked&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;allocation_size&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ALIGNMENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;null_mut&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allocation_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HEADER_SIZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;isize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nn&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;null_mut&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;cd&quot;&gt;/// Implements `free` through the rust `dealloc` interface.&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;///&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;/// Recovers the size of the block (needed by dealloc) by reading the&lt;/span&gt;
+&lt;span class=&quot;cd&quot;&gt;/// pre-pended header first.&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;#[no_mangle]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;pub&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;unsafe&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extern&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;C&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;null_mut&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allocation_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u64&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HEADER_SIZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;isize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;u64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;nn&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;dealloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HEADER_SIZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;isize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt;
+        &lt;span class=&quot;nn&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;from_size_align_unchecked&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;allocation_size&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ALIGNMENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;afterthoughts&quot;&gt;Afterthoughts&lt;/h2&gt;
+
+&lt;p&gt;I can think of two things that could’ve been done better here to prevent this
+bug:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;A post conditions that asserts proper alignment for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ptr&lt;/code&gt; (unfortunately I
+doubt I was consciously aware of the alignment restriction when I wrote that
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malloc&lt;/code&gt; function anyways)&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;libpthread would be more robust if it used the high bits&lt;sup id=&quot;fnref:1&quot; role=&quot;doc-noteref&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; in the pointer for
+tagging rather than the first four (this would prevent alignment issues, but
+might cause other bugs more easily)&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;footnotes&quot; role=&quot;doc-endnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot; role=&quot;doc-endnote&quot;&gt;
+      &lt;p&gt;On current x86-64 machines, virtual addresses do not use the &lt;a href=&quot;https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details&quot; title=&quot;Virtual address space details&quot;&gt;full 64 bits available&lt;/a&gt;. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot; role=&quot;doc-backlink&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Thu, 11 Mar 2021 02:22:30 +0000</pubDate>
+        <link>/bugs/2021/03/11/when-alignment-matters.html</link>
+        <guid isPermaLink="true">/bugs/2021/03/11/when-alignment-matters.html</guid>
+        
+        
+        <category>bugs</category>
+        
+      </item>
+    
+      <item>
+        <title>76 requests per second?</title>
+        <description>&lt;p&gt;It was a particularly mischievous bug. At the time, we were writing a new
+research prototype kernel in our group. Research operating systems are fun
+because you typically end up writing a lot of code until you get something very
+basic (like print) running. In fact, it’s often the case that you end up with a
+system or function call which can’t be fully implemented at the moment (because
+it would require too much code or other things are still missing for it).
+Therefore, every so often, you have to cut some corners and do a temporary,
+partial implementation to make progress on a goal.&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, if you cut too many corners, you end up forgetting about them.
+Then they haunt you as bugs weeks or months later. This post is about such an
+instance of a bug I had to deal with – approximately a year ago.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-premise&quot;&gt;The premise&lt;/h3&gt;
+
+&lt;p&gt;In our prototype OS, we had a kernel that implemented user-space processes,
+memory management, files, and device pass-through. We also had a user-space
+runtime for fine-grained scheduling (including locks etc.). However, at the time
+neither our runtime nor our kernel had full support for POSIX. POSIX is pretty
+important if you want to run existing applications, which in turn is important
+if you want to evaluate how well your system is doing. Unfortunately,
+implementing POSIX is a huge undertaking and our resources were limited.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, this problem was solved by a project called &lt;a href=&quot;https://github.com/rumpkernel&quot; title=&quot;Rump Kernels&quot;&gt;rumpkernels&lt;/a&gt; – a
+NetBSD libOS. A libOS is a fancy term for a library that contains an entire
+operating system (in this case NetBSD). I’m not going into &lt;a href=&quot;https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf&quot; title=&quot;Rumpkernel PhD thesis&quot;&gt;too many details&lt;/a&gt;
+here, but the way it works is that you’ll end up implementing a minimal set of
+&lt;a href=&quot;https://man.netbsd.org/NetBSD-8.0/i386/rumpuser.3&quot; title=&quot;rump kernel hypercall interface&quot;&gt;functions&lt;/a&gt; (around 50, called hypercalls in rump) which abstract away the
+underlying machine. In return, you’ll get all the NetBSD code (kernel and
+user-space) running inside your process: So instead of implementing a TCP/IP
+stack, disk and network drivers, libpthread and libc, you just have to implement
+these ~50, arguably pretty basic, functions which primarily deal with low-level
+memory management, timers, scheduling, and locking. It’s a great trade-off,
+especially since we already had most of that.&lt;/p&gt;
+
+&lt;h3 id=&quot;76-requests&quot;&gt;76 Requests?&lt;/h3&gt;
+
+&lt;p&gt;So there I was, working for a few weeks on writing the implementation for those
+50 hypercall functions. It was also around Christmas, so I ended up taking a
+break at some point. Overall, it probably took about 2-3 months to finish it.
+Many of the hypercalls were trivial to implement since we already had support
+for it, but some required significant additional implementation. After the
+implementation was completed, I figured I would test it by compiling a
+user-space process, linking the NetBSD code, my hypercall implementation, and
+&lt;a href=&quot;https://redis.io/&quot; title=&quot;Redis key--value server&quot;&gt;redis&lt;/a&gt; (a single-threaded key–value store). I definitely had some linking
+and init issues first, but after some digging, I finally saw a familiar
+prompt on my terminal:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-log&quot;&gt;[INFO] - vibrio::rumprt::crt::tls: tls area size is: data + bss + extra = 48
+[INFO] - vibrio::rumprt::prt: rumprun_makelwp 0x37a10008 0x3e019240 0x3e801000--4194304 64 0x37a10198
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           Redis 3.0.6 (ffbeedb9/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 1
+  `-._    `-._  `-./  _.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |           http://redis.io
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
+
+1:M 02 Feb 02:02:10.540 # Server started, Redis version 3.0.6
+1:M 02 Feb 02:02:10.540 * The server is now ready to accept connections on port 6379
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Redis started, great! Eager to see if it worked, I ran the redis-benchmark
+tool and sent GET requests to the network interface of the VM:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-log&quot;&gt;$ redis-benchmark -h 172.31.0.10 -n 1000
+====== GET ======
+  1000 requests completed in 13.00 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+
+30.10% &amp;lt;= 2 milliseconds
+80.10% &amp;lt;= 3 milliseconds
+85.10% &amp;lt;= 4 milliseconds
+90.10% &amp;lt;= 5280 milliseconds
+93.40% &amp;lt;= 5281 milliseconds
+93.90% &amp;lt;= 5282 milliseconds
+95.10% &amp;lt;= 6712 milliseconds
+96.30% &amp;lt;= 7684 milliseconds
+99.20% &amp;lt;= 7685 milliseconds
+100.00% &amp;lt;= 7685 milliseconds
+76.92 requests per second
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;76 requests?! That’s pretty terrible for most applications, let alone a
+key–value store… Just for comparison: a Linux VM with redis can do about 2
+million requests per second. So we’re off by a factor of &lt;strong&gt;26’000x&lt;/strong&gt;, yelp. The
+issue was also pretty clear from the histogram: 10% of the requests ended up
+just being &lt;em&gt;really&lt;/em&gt; slow (like 5+ seconds slow). What’s going on?&lt;/p&gt;
+
+&lt;h3 id=&quot;debugging&quot;&gt;Debugging&lt;/h3&gt;
+
+&lt;p&gt;With prototype OSes there is usually little support for debugging aside from
+printing and guessing. And its even harder if you’re debugging performance.
+However, with 76 requests per second, there ought to be something seriously
+wrong here so this should be easy? I remember being puzzled for a while though:&lt;/p&gt;
+
+&lt;p&gt;At first, I figured surely it must be slow because I am compiling all this code
+in debug mode without optimizations. So I quickly tried it with compiler
+optimizations turned on: No change at all, still 76 requests. This was
+confusing, there should have been at least some impact from the compiler?&lt;/p&gt;
+
+&lt;p&gt;My next suspicion was that I must have messed up some of the locking
+implementation. I instrumented most of them but to no avail. They didn’t take up
+any significant amount of time during the execution.&lt;/p&gt;
+
+&lt;p&gt;I also carefully inspected the scheduler and it’s run queues. Maybe the right
+threads just weren’t running because of a bug in the scheduling algorithm? I
+didn’t find anything wrong with it tough, the system was happily running all
+kinds of different threads at different times.&lt;/p&gt;
+
+&lt;p&gt;Interrupts were another potential culprit: Maybe they didn’t arrive or they
+didn’t work properly. I dismissed the theory when I verified that the interrupt
+handler did indeed get invoked properly by pinging the system.&lt;/p&gt;
+
+&lt;p&gt;Finally, I blamed rump itself (always good to blame others when desperate). But
+running the original rumpkernel as a unikernel in a VM revealed it does indeed
+work as intended with millions of GETs per second.&lt;/p&gt;
+
+&lt;p&gt;What got me on the right track eventually was the fact that pinging the
+interface also showed a similar anomaly with latency (although with less total
+variance).&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ping 172.31.0.10
+PING 172.31.0.10 (172.31.0.10) 56(84) bytes of data.
+64 bytes from 172.31.0.10: icmp_seq=1 ttl=255 time=5.78 ms
+64 bytes from 172.31.0.10: icmp_seq=2 ttl=255 time=5.32 ms
+64 bytes from 172.31.0.10: icmp_seq=3 ttl=255 time=2.50 ms
+64 bytes from 172.31.0.10: icmp_seq=4 ttl=255 time=0.940 ms
+64 bytes from 172.31.0.10: icmp_seq=5 ttl=255 time=8.81 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Ping uses ICMP requests, which are handled quite differently from TCP or UDP
+packets. I figured the issue must be somewhere deep down in the device driver,
+or device itself.&lt;/p&gt;
+
+&lt;p&gt;At one point, I didn’t quickly kill the system and let &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ping&lt;/code&gt; run for a longer
+time. That’s when I saw some concerning errors in the serial log (and at the
+same time the ping messages suddenly stopped arriving):&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
+wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
+wm0: device timeout (txfree 4032 txsfree 0 txnext 832)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wm0&lt;/code&gt; is our network device (a e1000 PCIe NIC emulated by QEMU here). The
+device timeout message is due to a &lt;a href=&quot;https://github.com/NetBSD/src/blob/1a75eb3d30e516d310e1482ba34fd1e65930c97b/sys/dev/pci/if_wm.c#L3274&quot;&gt;watchdog timer expiring in the NetBSD driver
+code&lt;/a&gt;. At this stage, I was still confused. Why would the device not work
+correctly for me? It definitely works with any other OS. The bug must be
+somewhere in my implementation, but where?&lt;/p&gt;
+
+&lt;h3 id=&quot;rumpcomp_pci_dmalloc&quot;&gt;rumpcomp_pci_dmalloc&lt;/h3&gt;
+
+&lt;p&gt;I started to piece things together when I finally noticed the following message
+in the log:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-log&quot;&gt;[ERROR] - vibrio::rumprt::dev: rumpcomp_pci_dmalloc size=65536 alignment=4096
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;rumpcomp_pci_dmalloc is one of the required hypercalls. It’s used by the NetBSD
+kernel (and its device drivers) to allocate DMA memory which can be read and
+written to by device drivers &lt;em&gt;and&lt;/em&gt; the devices. This is important because the
+device eventually needs to write incoming packets somewhere into memory or read
+outgoing packets from memory (using &lt;a href=&quot;https://en.wikipedia.org/wiki/Direct_memory_access&quot; title=&quot;Direct memory access&quot;&gt;DMA&lt;/a&gt;). DMA memory is a bit special
+because we need to know the underlying physical address of the allocated buffer.
+This is because a device does not use virtual addresses (like our process), and
+ends up referring to memory by physical addresses&lt;sup id=&quot;fnref:1&quot; role=&quot;doc-noteref&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;p&gt;Looking at our rumpcomp_pci_dmalloc function, nothing is obviously wrong with
+it:&lt;/p&gt;
+
+&lt;div class=&quot;language-rust highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;#[no_mangle]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;pub&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;unsafe&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extern&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;C&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;rumpcomp_pci_dmalloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;alignment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;usize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;c_ulong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;vptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;c_ulong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;c_int&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;from_size_align_unchecked&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alignment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4096&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nd&quot;&gt;error!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;rumpcomp_pci_dmalloc size={} alignment={}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alignment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;mut&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;crate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;nn&quot;&gt;mem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PAGER&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.allocate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;match&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nf&quot;&gt;Ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vaddr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;paddr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vaddr&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.as_u64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;paddr&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.as_u64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+            &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;nf&quot;&gt;Err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In short, the function takes a size and alignment argument to allocate a buffer
+that is &lt;em&gt;physically and virtually contiguous&lt;/em&gt;. It then expects us to write the
+corresponding physical and virtual start address of the new buffer into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pptr&lt;/code&gt;
+and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;vptr&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Notice the innocent error message that gets printed if size is &amp;gt;4096? Remember
+the shortcuts I talked about in the beginning? Well here is one that was taken
+early on and then forgotten about:&lt;/p&gt;
+
+&lt;p&gt;The interesting logic happens in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(*p).allocate(layout)&lt;/code&gt;. Eventually, this
+function calls into our kernel, which has to allocate memory, map it into our
+address space and return the virtual (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;vaddr&lt;/code&gt;) and physical (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paddr&lt;/code&gt;) address to
+it. When this function was first implemented, our kernel used a &lt;a href=&quot;https://en.wikipedia.org/wiki/Buddy_memory_allocation&quot; title=&quot;Buddy allocator&quot;&gt;buddy
+allocator&lt;/a&gt; to allocate physical memory. The buddy allocator would always
+return a physically consecutive region of memory, which the kernel mapped  as a
+virtually consecutive region by writing the page-table entries accordingly.&lt;/p&gt;
+
+&lt;p&gt;The bug got introduced when sometime in the middle of implementing the
+hypercalls, the underlying kernel memory allocator changed: Rather than using a
+buddy allocator (which is fairly slow), an optimization got added that held a
+bunch of pages as 4 KiB frames on a stack to allocate from them quickly.
+However, the problem now was that these frames were no longer necessarily
+physically consecutive. For buffers larger than 4 KiB the kernel would happily
+pop off frames from the stack, add them together in virtual space, and then just
+return the physical address of the first page that got mapped as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paddr&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;This meant that if the size of the buffer was exactly 4 KiB, everything was
+virtually and physically consecutive. For larger memory areas like the one
+allocated by the NIC driver (64 KiB), the returned &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paddr&lt;/code&gt; would only match for
+the first 4 KiB of the buffer. Afterwards all bets were off&lt;sup id=&quot;fnref:3&quot; role=&quot;doc-noteref&quot;&gt;&lt;a href=&quot;#fn:3&quot; class=&quot;footnote&quot; rel=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;. The driver
+would then take this large buffer and slice it up into smaller packet buffers.
+The physical address of those individual buffers was calculated by taking the
+original &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paddr&lt;/code&gt; and adding a offset to it. What this meant for the system was
+that only a small percentage of the packet buffers were actually working. For
+the rest, the device would write to them using some physical address but it
+didn’t match with the corresponding virtual address in the driver code.&lt;/p&gt;
+
+&lt;p&gt;What was surprising here is that even though only a fraction of the packet
+buffers were working (e.g., were correctly visible in both device and driver),
+the system still “worked”, thanks to the all robustness (retransmission, error
+checking etc.) built into TCP/IP. It just had really terrible performance.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-went-wrong&quot;&gt;What went wrong?&lt;/h3&gt;
+
+&lt;p&gt;The contract between the user-space allocator and the kernel allocator clearly
+broke when the kernel allocator got optimized. So, when I initially changed the
+allocation scheme in the kernel, I added the error message in
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rumpcomp_pci_dmalloc&lt;/code&gt; to indicate that this should be fixed later for buffers
+larger than 4 KiB (cutting a corner).&lt;/p&gt;
+
+&lt;p&gt;However, fixing it wasn’t a top priority at the time: we wanted to bring up the
+system without drivers anyways first. So instead of using an assert, logging an
+error was a better way to make progress on other parts of the system.
+Unfortunately, after a while the error message just got forgotten, only to be
+rediscovered later in a pile of other log messages.&lt;/p&gt;
+
+&lt;p&gt;Once I fixed the bug, redis jumped from 76 to 24k GET requests per second. That
+was a quick 325x improvement! It took getting rid of 2-3 other bugs to go past a
+million, but those are a story for another time.&lt;/p&gt;
+
+&lt;div class=&quot;footnotes&quot; role=&quot;doc-endnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot; role=&quot;doc-endnote&quot;&gt;
+      &lt;p&gt;For simplicity, we ignore the IOMMU here. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot; role=&quot;doc-backlink&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:3&quot; role=&quot;doc-endnote&quot;&gt;
+      &lt;p&gt;Given how our stack based allocator worked it would, with high chance, often have some other frames in there that would align but there were no guarantees for that. &lt;a href=&quot;#fnref:3&quot; class=&quot;reversefootnote&quot; role=&quot;doc-backlink&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Sun, 08 Mar 2020 22:27:30 +0000</pubDate>
+        <link>/bugs/2020/03/08/76-requests-per-second.html</link>
+        <guid isPermaLink="true">/bugs/2020/03/08/76-requests-per-second.html</guid>
+        
+        
+        <category>bugs</category>
+        
+      </item>
+    
+  </channel>
+</rss>

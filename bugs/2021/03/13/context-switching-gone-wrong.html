@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-67902252-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-67902252-1');
+  </script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="favicon.png">
+
+  <title>Context-switching gone wrong</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/css/bootstrap-social.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="/css/main.css" rel="stylesheet">
+  <link href="/css/syntax.css" rel="stylesheet" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">gerdzellweger.com</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          
+          
+
+          <li>
+            <a href="/blog" title="Blog">Blog</a>
+          </li>
+
+          <li>
+            <a href="cv.pdf" title="Resume">CV</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/gz" title="Github">Github</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Social <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">LinkedIn</a></li>
+              <li><a href="https://twitter.com/gerdzellweger">Twitter</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!--/.nav-collapse -->
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="clearfix">
+    <h2>Context-switching gone wrong</h2>
+    <p class="meta"> Written on March 13, 2021</p>
+
+    <div class="post">
+        <p>I remember while this bug wasn’t that hard to fix (or find), it still had some
+“fantastic” potential to it. Because, when it appeared, at first nothing made
+sense anymore…</p>
+
+<p>When programming, it happens occasionally that you end up with a dead-end: A
+branch in the code that you determine will <em>never</em> be taken by the CPU with
+absolute certainty. However, due to limitations in the language or the structure
+of your algorithm you can’t really avoid to account for it in the program.</p>
+
+<p>An example can be a match statement like this one:</p>
+
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="k">mut</span> <span class="n">ops</span> <span class="o">=</span> <span class="nn">Vec</span><span class="p">::</span><span class="nf">with_capacity</span><span class="p">(</span><span class="n">nop</span><span class="p">);</span>
+<span class="k">for</span> <span class="n">_i</span> <span class="k">in</span> <span class="mi">0</span><span class="o">..</span><span class="n">nop</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="n">op</span> <span class="o">=</span> <span class="n">orng</span><span class="nf">.gen</span><span class="p">();</span>
+    <span class="k">match</span> <span class="n">op</span> <span class="o">%</span> <span class="mi">2</span> <span class="p">{</span>
+        <span class="mi">0</span> <span class="k">=&gt;</span> <span class="n">ops</span><span class="nf">.push</span><span class="p">(</span><span class="nn">Operation</span><span class="p">::</span><span class="nf">WriteOperation</span><span class="p">(</span><span class="nn">OpWr</span><span class="p">::</span><span class="n">Pop</span><span class="p">)),</span>
+        <span class="mi">1</span> <span class="k">=&gt;</span> <span class="n">ops</span><span class="nf">.push</span><span class="p">(</span><span class="nn">Operation</span><span class="p">::</span><span class="nf">WriteOperation</span><span class="p">(</span><span class="nn">OpWr</span><span class="p">::</span><span class="nf">Push</span><span class="p">(</span><span class="n">orng</span><span class="nf">.gen</span><span class="p">()))),</span>
+        <span class="n">_</span> <span class="k">=&gt;</span> <span class="nd">unreachable!</span><span class="p">(</span><span class="s">"Can only have 0 or 1"</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Since we end up doing modulo two on our <code class="language-plaintext highlighter-rouge">op</code> variable, the only values we ever
+expect to see is 0 or 1 in that match statement. However, the match statement
+in rust needs to be exhaustive and in some cases the rust compiler isn’t able 
+to determine that only two scenarios are valid and so it still wants us 
+to provide a wild-card pattern (using <code class="language-plaintext highlighter-rouge">_</code>), which provides an execution path 
+for every number that is not 0 or 1. Because we determine this code-path can 
+never be executed we end up putting an <code class="language-plaintext highlighter-rouge">unreachable!</code> statement there, 
+which would just abort the program. That’s perfectly fine because it’s obvious 
+to see that we never go there.</p>
+
+<blockquote>
+  <p>Note aside, the current rust compiler does in-fact <a href="https://rust.godbolt.org/z/9aY3nq8nf">eliminate the unreachable 
+branch in release mode (but not in debug mode)</a>.
+Another way to write it is to replace the <code class="language-plaintext highlighter-rouge">1</code> with a <code class="language-plaintext highlighter-rouge">_</code> in the match statement
+but this can lead to “hard-to-find bugs” if we change the expression
+we’re matching on later.</p>
+</blockquote>
+
+<p>Another (slightly weaker) form of such paths are “trivial” pre-conditions in the
+form of asserts. For example, here is such a pre-condition in C:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">mutex_obj_hold</span><span class="p">(</span><span class="n">kmutex_t</span> <span class="o">*</span><span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">kmutexobj</span> <span class="o">*</span><span class="n">mo</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">kmutexobj</span> <span class="o">*</span><span class="p">)</span><span class="n">lock</span><span class="p">;</span>
+
+    <span class="n">KASSERTMSG</span><span class="p">(</span><span class="n">mo</span><span class="o">-&gt;</span><span class="n">mo_magic</span> <span class="o">==</span> <span class="n">MUTEX_OBJ_MAGIC</span><span class="p">,</span>
+        <span class="s">"%s: lock %p: mo-&gt;mo_magic (%#x) != MUTEX_OBJ_MAGIC (%#x)"</span><span class="p">,</span>
+         <span class="n">__func__</span><span class="p">,</span> <span class="n">mo</span><span class="p">,</span> <span class="n">mo</span><span class="o">-&gt;</span><span class="n">mo_magic</span><span class="p">,</span> <span class="n">MUTEX_OBJ_MAGIC</span><span class="p">);</span>
+
+    <span class="n">atomic_inc_uint</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mo</span><span class="o">-&gt;</span><span class="n">mo_refcnt</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Essentially, the <code class="language-plaintext highlighter-rouge">KASSERTMSG</code> is saying that in order to call <code class="language-plaintext highlighter-rouge">mutex_obj_hold</code>
+the argument provided must be of type <code class="language-plaintext highlighter-rouge">kmutexobj</code>, which is validated in C by
+checking that the member <code class="language-plaintext highlighter-rouge">mo_magic</code> is set to the constant <code class="language-plaintext highlighter-rouge">MUTEX_OBJ_MAGIC</code>.
+This is a way to add some type robustness for a “loosely typed” language such as
+C. While this pre-condition can certainly be wrong, in practice this is rarely
+expected to happen. The only time this supposedly can fail is if someone just
+wrote some locking code and invoked this function with a wrong argument (aka a
+different type) or forgot to initialize the lock<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup>.</p>
+
+<h3 id="branching-into-the-unreachable">Branching into the unreachable</h3>
+
+<p>As you can probably guess, the manifestation of the bug in this post was that
+the execution of a program would suddenly end up in such code-paths by taking
+these “impossible” branches. Which meant for the first example, that it could
+suddenly fail with</p>
+
+<pre><code class="language-log">thread 'main' panicked at 'internal error: entered unreachable code: Can only be 0 or 1', src/main.rs:6:5
+</code></pre>
+
+<p>And, because that wasn’t weird enough, the bug also wasn’t deterministic: Most
+of the time the program would work “just fine”, but every so often the code
+would abort due to some random <code class="language-plaintext highlighter-rouge">assert</code>, <code class="language-plaintext highlighter-rouge">panic</code>, or <code class="language-plaintext highlighter-rouge">unreachable!</code> statement.
+Upon inspection they always turned out to be unlikely or impossible things which
+now suddenly happened at an alarming rate.</p>
+
+<p>To understand this a bit better, we have to refresh some knowledge about CPU
+assembly language (we use x86) to see what’s really going on under the hood.
+It’s important to understand that our <code class="language-plaintext highlighter-rouge">match</code> and <code class="language-plaintext highlighter-rouge">KASSERT</code> example will
+eventually be rewritten using just a bunch of <code class="language-plaintext highlighter-rouge">if</code> statements by the compiler:</p>
+
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">op</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+    <span class="n">ops</span><span class="nf">.push</span><span class="p">(</span><span class="nn">Operation</span><span class="p">::</span><span class="nf">WriteOperation</span><span class="p">(</span><span class="nn">OpWr</span><span class="p">::</span><span class="n">Pop</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="k">if</span> <span class="n">op</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">{</span>
+    <span class="n">ops</span><span class="nf">.push</span><span class="p">(</span><span class="nn">Operation</span><span class="p">::</span><span class="nf">WriteOperation</span><span class="p">(</span><span class="nn">OpWr</span><span class="p">::</span><span class="nf">Push</span><span class="p">(</span><span class="n">orng</span><span class="nf">.gen</span><span class="p">())));</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="p">{</span>
+    <span class="nd">unreachable!</span><span class="p">(</span><span class="s">"Can only have 0 or 1"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Afterwards, the code is further simplified into comparisons (<code class="language-plaintext highlighter-rouge">cmp</code>) and branch
+instructions (<code class="language-plaintext highlighter-rouge">jmp</code>, <code class="language-plaintext highlighter-rouge">jne</code> etc.) when converted to x86 assembly. To explain, we
+show the assembly code for the first if statement, <code class="language-plaintext highlighter-rouge">if op % 2 == 0</code>:</p>
+
+<pre><code class="language-asm">and     rax, 1
+cmp     rax, 0
+jne     .LBB126_3
+</code></pre>
+
+<p>The first instruction does a bitwise <code class="language-plaintext highlighter-rouge">and</code> with <code class="language-plaintext highlighter-rouge">op</code> (in <code class="language-plaintext highlighter-rouge">rax</code>) and the constant
+<code class="language-plaintext highlighter-rouge">1</code> (calculates <code class="language-plaintext highlighter-rouge">op % 2</code> by taking the first bit of <code class="language-plaintext highlighter-rouge">op</code> and stores this in
+<code class="language-plaintext highlighter-rouge">rax</code>), then it compares the <code class="language-plaintext highlighter-rouge">rax</code> to 0 using <code class="language-plaintext highlighter-rouge">cmp</code>, and finally if <code class="language-plaintext highlighter-rouge">rax</code>
+contained something not 0, it will jump to another location (e.g., to the label
+<code class="language-plaintext highlighter-rouge">.LBB126_3</code>). However, if it was 0 it will continue with the next instruction
+after <code class="language-plaintext highlighter-rouge">jne</code>.</p>
+
+<p>One thing that’s important to understand here is that there is an implicit
+dependency between the result of <code class="language-plaintext highlighter-rouge">cmp</code> and <code class="language-plaintext highlighter-rouge">jne</code> that is not directly visible:
+Since <code class="language-plaintext highlighter-rouge">jne</code> needs to jump (or not) based on the result of the previous <code class="language-plaintext highlighter-rouge">cmp</code>
+instruction, it needs to access its result somehow. On x86, the CPU has a
+special register called <a href="https://en.wikipedia.org/wiki/FLAGS_register" title="RFlags Register">RFLAGS</a> for this purpose. What happens is that the
+<a href="https://www.felixcloutier.com/x86/cmp" title="CMP Instruction on x86"><code class="language-plaintext highlighter-rouge">cmp</code></a> instruction will subtract the second operand (0) from the first
+operand (<code class="language-plaintext highlighter-rouge">rax</code>) and then set flags in RFLAGS based on the result of the
+subtraction. For example, the Zero Flag (which is the one important for <code class="language-plaintext highlighter-rouge">jne</code>),
+is set to 1 if the subtraction performed by <code class="language-plaintext highlighter-rouge">cmp</code> results in zero. This means
+<code class="language-plaintext highlighter-rouge">jne</code> just needs to inspect the Zero Flag in RFLAGS: if it is set it won’t jump
+because the compared values were equal, but if it remained unset it will jump to
+the specified location.</p>
+
+<h3 id="locating-the-issue">Locating the issue</h3>
+
+<p>So what went wrong with our code? Why would the CPU suddenly take those odd
+branches that led nowhere? Assuming our branch logic in the CPU wasn’t broken,
+surely the bug must be in the software somewhere?</p>
+
+<p>As always there were a couple of options where this bug could be located: For
+example, since we wrote our own ELF parsing and loading library, if something
+was messed up in there about how instructions get loaded or relocated it could
+definitely become a problem. This seemed unlikely though since the bug only
+affected branches and also wasn’t deterministic.</p>
+
+<p>What really helped was when I eventually figured out that this bug only happened
+on CPU cores were the OS received interrupts during execution. That limited the
+scope of the bug to anything that would happen in the interrupt handler. To
+isolate further, I downsized the interrupt handler by removing all program logic
+in it (aside from restoring the context). When afterwards the bug was still
+present, I knew it must be in the context restore logic.</p>
+
+<p>To explain this a bit more: The bread and butter of an operating system is to
+give an illusion to a program that it is running without any interruption on a
+CPU. In reality tough, an OS will context-switch many times per second to
+execute many different programs concurrently. One cause for a context switch can
+be interrupts: For example from a device, to notify when a packet is ready, or a
+timer to tell us that it might be time to run some other program now. To hold up
+the illusion, OS and hardware ideally must capture the exact state of the CPU
+when the interruption happens and restore back that exact state to resume
+execution of a program later.</p>
+
+<p>There are two predominant ways to resume execution in user-space from a kernel
+on modern x86: <a href="https://www.felixcloutier.com/x86/sysret" title="SYSRET Instruction on x86">sysret</a> to return after a program made a syscall, and
+<a href="https://www.felixcloutier.com/x86/iret:iretd" title="IRETQ Instruction on x86">iretq</a> to return after an interrupt. Both need to restore the CPU context
+which can include some or all general-purpose registers, the SIMD and floating
+point state, as well as the aforementioned RFLAGS register. Context-switching
+usually can be executed only through a series of assembly statements.</p>
+
+<p>Here is a code-snippet that stores the CPU state when an interrupt happens (it
+misses a register, can you spot it?). A memory region, accessed through <code class="language-plaintext highlighter-rouge">%rax</code>,
+is used to move the CPU register contents to a process-specific save area.</p>
+
+<pre><code class="language-asm">// Interrupt execution starts here...
+
+// Save original %rax temporarily on the stack 
+// because we will overwrite it to hold a reference to save area
+pushq %rax
+
+// First, get the pointer to the register save area
+rdgsbase %rax
+movq 0x8(%rax), %rax
+
+// Save CPU general-purpose register context
+// We don't save %rax yet since we used it to
+// reference the save area location
+movq %rbx,  1*8(%rax)
+movq %rcx,  2*8(%rax)
+movq %rdx,  3*8(%rax)
+movq %rsi,  4*8(%rax)
+movq %rdi,  5*8(%rax)
+movq %rbp,  6*8(%rax)
+// We don't save %rsp yet since it is overridden by CPU on irq entry
+movq %r8,   8*8(%rax)
+movq %r9,   9*8(%rax)
+movq %r10, 10*8(%rax)
+movq %r11, 11*8(%rax)
+movq %r12, 12*8(%rax)
+movq %r13, 13*8(%rax)
+movq %r14, 14*8(%rax)
+movq %r15, 15*8(%rax)
+
+// Save original rax, which we pushed on the stack previously
+popq %r15
+movq %r15, 0*8(%rax)
+
+// Save %rsp of interrupted process
+movq 5*8(%rsp), %r15
+movq %r15, 7*8(%rax)
+
+// Save RIP were we were at before we got interrupted
+// This is at rsp+16 (put there by the hardware):
+movq 2*8(%rsp), %r15
+movq %r15, 16*8(%rax)
+
+// Saves the fs register
+rdfsbase %r15
+movq %r15, 19*8(%rax)
+
+// Save vector registers
+fxsave 24*8(%rax)
+
+// Move on to high-level language function
+callq handle_generic_exception
+</code></pre>
+
+<p>And here is the “opposite” code-snippet that restores the CPU context again
+(from the save area, now in <code class="language-plaintext highlighter-rouge">%rdi</code>) and returns to the interrupted program using
+<code class="language-plaintext highlighter-rouge">iretq</code> (this example doesn’t miss anything and is correct):</p>
+
+<pre><code class="language-asm">// Restore fs and gs registers
+swapgs
+movq 19*8(%rdi), %rsi
+wrfsbase %rsi
+
+// Restore SIMD/vector registers
+fxrstor 24*8(%rdi)
+
+// Restore general-purpose CPU registers
+movq  0*8(%rdi), %rax
+movq  1*8(%rdi), %rbx
+movq  2*8(%rdi), %rcx
+movq  3*8(%rdi), %rdx
+movq  4*8(%rdi), %rsi
+// %rdi: Restored last (see below) to preserve `save_area`
+movq  6*8(%rdi), %rbp
+// %rsp: Restored through `iretq` (see below)
+movq  8*8(%rdi), %r8
+movq  9*8(%rdi), %r9
+movq 10*8(%rdi), %r10
+movq 11*8(%rdi), %r11
+movq 12*8(%rdi), %r12
+movq 13*8(%rdi), %r13
+movq 14*8(%rdi), %r14
+movq 15*8(%rdi), %r15
+
+// Stack segment register
+pushq 18*8(%rdi)
+// %rsp stack register
+pushq 7*8(%rdi)
+// RFLAGS register
+pushq 17*8(%rdi)
+// Code segment register
+pushq 19*8(%rdi)
+
+// Instruction pointer
+pushq 16*8(%rdi)
+
+// Restore `rdi` register last, since it was used to reach `save_area`
+movq 5*8(%rdi), %rdi
+
+// And back we go:
+iretq
+</code></pre>
+
+<p>The bug in this case was that we simply forgot to ever store <code class="language-plaintext highlighter-rouge">RFLAGS</code> to the
+save area in the first snippet. This meant that every time we returned from an
+interrupt it would use an outdated <code class="language-plaintext highlighter-rouge">RFLAGS</code> (the one which remained from the
+last time the process did a system call).</p>
+
+<p>Going back to our branch example from earlier: Imagine an interrupt happens
+after the CPU already executed <code class="language-plaintext highlighter-rouge">cmp</code> but just before it wanted to start
+executing <code class="language-plaintext highlighter-rouge">jne</code>. Instead of resuming execution at <code class="language-plaintext highlighter-rouge">jne</code> with the up-to-date
+<code class="language-plaintext highlighter-rouge">RFLAGS</code>, now we resume with an outdated <code class="language-plaintext highlighter-rouge">RFLAGS</code> value that may or may not
+correspond to what <code class="language-plaintext highlighter-rouge">cmp</code> computed one instruction earlier. Without restoring
+<code class="language-plaintext highlighter-rouge">RFLAGS</code> properly, our branching became a seemingly random affair – depending
+on whether interrupts would happen or not and when :).</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p>Another way would be through memory corruption, but that’s not what was happening with this bug. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+    </div>
+
+    <script src="https://utteranc.es/client.js" repo="gz/website" issue-term="pathname" theme="github-light"
+        crossorigin="anonymous" async>
+        </script>
+</div>
+  </div>
+
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+</body>
+
+</html>

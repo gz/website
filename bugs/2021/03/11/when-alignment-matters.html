@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-67902252-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-67902252-1');
+  </script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="favicon.png">
+
+  <title>When alignment matters</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/css/bootstrap-social.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="/css/main.css" rel="stylesheet">
+  <link href="/css/syntax.css" rel="stylesheet" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">gerdzellweger.com</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          
+          
+
+          <li>
+            <a href="/blog" title="Blog">Blog</a>
+          </li>
+
+          <li>
+            <a href="cv.pdf" title="Resume">CV</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/gz" title="Github">Github</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Social <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">LinkedIn</a></li>
+              <li><a href="https://twitter.com/gerdzellweger">Twitter</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!--/.nav-collapse -->
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="clearfix">
+    <h2>When alignment matters</h2>
+    <p class="meta"> Written on March 11, 2021</p>
+
+    <div class="post">
+        <p>Some bugs are hard to find because when they manifest, they do so in a very
+misleading way. This one is about fairly unexpected consequences when things
+aren’t properly aligned. Most of the time alignment problems lead to “just” bad
+performance. In some other cases, hardware architectures may generate a fault on
+misaligned accesses (but this is easy to pin-point and fix). However, in our
+case the problem was a little more subtle.</p>
+
+<p>We were trying to run some more applications on our new research OS. If you
+haven’t read the <a href="https://gerdzellweger.com/bugs/2020/03/08/76-requests-per-second.html" title="76 requests per second">previous post</a>: We had a new kernel that we built from
+scratch and our user-space processes ran with a small libOS that we wrote from
+scratch too. Basically, we had a lot of code which was fairly new, and bugs had
+to be expected anywhere.</p>
+
+<p>For example, our user-space runtime – the victim of the bug in this post –
+contained a custom built memory allocator, user-space scheduler and a system
+call abstraction for the kernel. In addition, it provided the lowest layer (the
+hypercalls) that allowed a process to also link with <a href="https://aaltodoc.aalto.fi/bitstream/handle/123456789/6318/isbn9789526049175.pdf" title="Rumpkernel PhD thesis">rumpkernel</a>. rumpkernel
+is a library OS built on NetBSD that gave a lot of POSIX support to a process.
+Most importantly for this post, it came with an implementation of libpthread.
+The way it worked was that libpthread provided an implementation of all the
+pthread APIs, but underneath it would call into our own custom scheduler
+(through the hypercalls), to create new threads and control which threads would
+be put in and out of the run queues etc.</p>
+
+<h3 id="locking-gone-wrong">Locking gone wrong</h3>
+
+<p><a href="https://gerdzellweger.com/bugs/2020/03/08/76-requests-per-second.html" title="76 requests per second">Last time</a> we were in the process of porting Redis to our OS. This time I
+was trying to port a second application, namely <a href="https://memcached.org/" title="memcached key--value server">memcached</a>. It was a good
+test because in comparison to Redis, memcached was multi-threaded. So it
+exercised a lot more code-paths than Redis.</p>
+
+<p>When trying to launch memcached, it became apparent that the process very often
+ended up stuck somewhere during initialization and didn’t make progress anymore.
+Unfortunately, it wasn’t really deterministic: Every time it would get stuck in
+a slightly different function (and loop). And sometimes it even worked:
+memcached started and waited for incoming connections – great!</p>
+
+<p>In such a scenario, a systems programmer will immediately think of two potential
+classes of bugs: (1) a memory corruption: for example a stack corruption or a
+buffer overflow could cause the program to wait in some loop forever. (2) a
+locking issue: e.g., a deadlock or a race due to improper locking.</p>
+
+<p>After getting stuck a few times, I started to notice that most of the times when
+execution came to a halt, it was in one of the pthread locking functions.
+Therefore, I expected a problem with locking. However, I trusted that memcached
+would use pthread locks correctly and that libpthread (which came from NetBSD)
+was correct too. What I certainly didn’t have much faith in was my scheduler or
+the integration of libpthread with it. Memory corruption wasn’t high on my list
+because most of our code was written in Rust and so we experienced very few
+memory bugs, if at all.</p>
+
+<p>For libpthread to work with our scheduler, I had to provide a <a href="https://man.netbsd.org/_lwp_create.2" title="_lwp_create man page">series</a>
+<a href="https://man.netbsd.org/_lwp_unpark_all.2" title="_lwp_unpark_all man page">of</a> <a href="https://man.netbsd.org/_lwp_self.2" title="_lwp_self man page">low-level</a> <a href="https://man.netbsd.org/_lwp_ctl.2" title="_lwp_ctl man page">APIs</a>. These functions were prefixed with <code class="language-plaintext highlighter-rouge">_lwp</code>,
+which stands for light-weight process. The <code class="language-plaintext highlighter-rouge">_lwp</code> APIs can be a fairly complex
+affair to get right: For example <a href="https://man.netbsd.org/_lwp_park.2" title="_lwp_park man page">_lwp_park</a> and <a href="https://man.netbsd.org/_lwp_unpark.2" title="_lwp_unpark man page">_lwp_unpark</a> are used to
+add threads and remove threads from the scheduler run-queue. In addition to
+<code class="language-plaintext highlighter-rouge">_lwp_park</code> having many different parameters, one must also be aware that in
+multi-threaded code, unpark can potentially arrive before park has even
+completed… It isn’t surprising that I spent a lot of time trying to find the
+bug somewhere in my implementation of those APIs. A problem there could easily
+lead to threads not being woken up or put to sleep incorrectly  (which in turn
+meant someone else might end up waiting on a lock forever). However, as much as
+I wanted to find the bug there, it just wasn’t there.</p>
+
+<h3 id="tagged-pointers">Tagged pointers</h3>
+
+<p>Through the debug process, I became more familiar with the locking APIs in
+NetBSD. I especially learned more about how pthreads worked internally than I
+really wanted to know. But, this proved to be crucial for figuring out what was
+wrong. What helped getting me on the right path was the following comment in
+<a href="https://github.com/NetBSD/src/blob/ba908cc6df5309a877172334358b7f3103294e18/lib/libpthread/pthread_int.h#L314" title="pthread_int.h">pthread_int.h</a>:</p>
+
+<pre><code class="language-comment">Bits in the owner field of the lock that indicate lock state.  If the
+WRITE_LOCKED bit is clear, then the owner field is actually a count of
+the number of readers.
+</code></pre>
+
+<p>What this comment meant to convey is that in case of a reader-writer lock the
+“owner field” (a 64 bit value) uses a bunch of bits (the first four) to indicate
+things about the lock’s state (<code class="language-plaintext highlighter-rouge">wait</code>, <code class="language-plaintext highlighter-rouge">wrlock</code> and <code class="language-plaintext highlighter-rouge">wrwant</code>). If <code class="language-plaintext highlighter-rouge">wrlock</code> is
+set to 1, bits 4 to 63 point to an address where the owner struct resides, if
+<code class="language-plaintext highlighter-rouge">wrlock</code> is set to 0 the bits contain the amount of readers instead.</p>
+
+<pre><code class="language-comment"> N                              4        3        2        1        0
+ +------------------------------------------------------------------+
+ | owner or read count          | &lt;free&gt; | wrlock | wrwant |  wait  |
+ +------------------------------------------------------------------+
+</code></pre>
+
+<p>This is a form of tagged pointers, which encodes a few bits of meta-data along
+with an address or count. The reason this works is because everything allocated
+by malloc, such as the owner struct, is expected to have (at least) a 16 byte
+alignment on our platform (so the first 4 bits of any pointer handed out by
+<code class="language-plaintext highlighter-rouge">malloc</code> are guaranteed to be zero). If one wants to dereference the owner
+pointer, libpthread just has to make sure to always mask out (set to zero) the
+lower 4 bits before dereferencing it.</p>
+
+<h2 id="malloc-and-free">malloc() and free()</h2>
+
+<p>As you can probably guess by now, the real culprit ended up being our malloc
+aligning everything to 8 instead of 16 bytes. This meant that our address to the
+owner would use the 4th bit, which was reserved for use by libpthread. Even
+though the bit wasn’t really in use, the pthread code would still clear the bit
+before a dereference, and thus change the base address for the owner struct
+slightly – which turned out to be quite confusing for the pthread code.</p>
+
+<p>One last detail about this bug was that our underlying memory allocator was
+actually doing all the alignment correctly. However, our user-space runtime
+including the memory allocator was written in Rust. The bug was introduced when
+I wrote the wrapper code that converted the <code class="language-plaintext highlighter-rouge">malloc</code> and <code class="language-plaintext highlighter-rouge">free</code> calls (as
+required by rumpkernel) to Rust’s <a href="https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.alloc" title="GlobalAlloc::alloc()">alloc</a> and <a href="https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.dealloc" title="GlobalAlloc::dealloc()">dealloc</a> interface.</p>
+
+<p>The <a href="https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.dealloc" title="GlobalAlloc::dealloc()">dealloc</a> function – Rust’s equivalent of <code class="language-plaintext highlighter-rouge">free(ptr)</code> – takes a
+pointer <em>and</em> a Layout (which encodes size and alignment information for the
+pointer). With pure Rust code, this is fine since the Rust compiler will insert
+the correct layout argument on deallocations. Hence, Rust allocators technically
+don’t need to manually keep track of the size of pointers handed out by <code class="language-plaintext highlighter-rouge">alloc</code>
+(nice!). However to support <code class="language-plaintext highlighter-rouge">malloc</code> and <code class="language-plaintext highlighter-rouge">free</code> for C code, we need to at be
+able to find the size of a pointer when it is given back to <code class="language-plaintext highlighter-rouge">free</code> (which gets
+just the pointer as a single argument with no extra size or alignment). Memory
+allocators written for C often solve this problem by allocating a few bytes more
+than needed and storing the size of the block in the first few bytes of the
+newly allocated memory.</p>
+
+<p>Here is our original (buggy) code, which prepends every block with an 8 byte
+header on <code class="language-plaintext highlighter-rouge">malloc</code> to store the size, and then reads the size again during free.
+As you can see <code class="language-plaintext highlighter-rouge">HEADER_SIZE</code> is set to 8 bytes, which means our pointers we hand
+out are now aligned to 8 bytes (even though we requested a 16 byte alignment
+from the underlying allocator). The fix is to change <code class="language-plaintext highlighter-rouge">HEADER_SIZE</code> and/or
+<code class="language-plaintext highlighter-rouge">ALIGNMENT</code> accordingly.</p>
+
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">pub</span> <span class="k">const</span> <span class="n">HEADER_SIZE</span><span class="p">:</span> <span class="nb">usize</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+<span class="k">pub</span> <span class="k">const</span> <span class="n">ALIGNMENT</span><span class="p">:</span> <span class="nb">usize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>
+
+<span class="cd">/// Implementes malloc using the `alloc::alloc` interface.</span>
+<span class="cd">///</span>
+<span class="cd">/// We need to add a header to store the size for the</span>
+<span class="cd">/// `free` and `realloc` implementation.</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">unsafe</span> <span class="k">extern</span> <span class="s">"C"</span> <span class="k">fn</span> <span class="nf">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="n">c_size_t</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="o">*</span><span class="k">mut</span> <span class="nb">u8</span> <span class="p">{</span>
+    <span class="nd">trace!</span><span class="p">(</span><span class="s">"malloc {}"</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+
+    <span class="k">let</span> <span class="n">allocation_size</span><span class="p">:</span> <span class="nb">u64</span> <span class="o">=</span> <span class="p">(</span><span class="n">size</span> <span class="o">+</span> <span class="n">HEADER_SIZE</span><span class="p">)</span> <span class="k">as</span> <span class="nb">u64</span><span class="p">;</span>
+    <span class="k">let</span> <span class="n">ptr</span> <span class="o">=</span> <span class="nn">alloc</span><span class="p">::</span><span class="nn">alloc</span><span class="p">::</span><span class="nf">alloc</span><span class="p">(</span><span class="nn">Layout</span><span class="p">::</span><span class="nf">from_size_align_unchecked</span><span class="p">(</span>
+        <span class="n">allocation_size</span> <span class="k">as</span> <span class="nb">usize</span><span class="p">,</span>
+        <span class="n">ALIGNMENT</span><span class="p">,</span>
+    <span class="p">));</span>
+
+    <span class="k">if</span> <span class="n">ptr</span> <span class="o">!=</span> <span class="nn">ptr</span><span class="p">::</span><span class="nf">null_mut</span><span class="p">()</span> <span class="p">{</span>
+        <span class="o">*</span><span class="p">(</span><span class="n">ptr</span> <span class="k">as</span> <span class="o">*</span><span class="k">mut</span> <span class="nb">u64</span><span class="p">)</span> <span class="o">=</span> <span class="n">allocation_size</span><span class="p">;</span>
+        <span class="n">ptr</span><span class="nf">.offset</span><span class="p">(</span><span class="n">HEADER_SIZE</span> <span class="k">as</span> <span class="nb">isize</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nn">ptr</span><span class="p">::</span><span class="nf">null_mut</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cd">/// Implements `free` through the rust `dealloc` interface.</span>
+<span class="cd">///</span>
+<span class="cd">/// Recovers the size of the block (needed by dealloc) by reading the</span>
+<span class="cd">/// pre-pended header first.</span>
+<span class="nd">#[no_mangle]</span>
+<span class="k">pub</span> <span class="k">unsafe</span> <span class="k">extern</span> <span class="s">"C"</span> <span class="k">fn</span> <span class="nf">free</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="o">*</span><span class="k">mut</span> <span class="nb">u8</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">ptr</span> <span class="o">==</span> <span class="nn">ptr</span><span class="p">::</span><span class="nf">null_mut</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">let</span> <span class="n">allocation_size</span><span class="p">:</span> <span class="nb">u64</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">ptr</span><span class="nf">.offset</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">HEADER_SIZE</span> <span class="k">as</span> <span class="nb">isize</span><span class="p">))</span> <span class="k">as</span> <span class="o">*</span><span class="k">mut</span> <span class="nb">u64</span><span class="p">);</span>
+    <span class="nn">alloc</span><span class="p">::</span><span class="nn">alloc</span><span class="p">::</span><span class="nf">dealloc</span><span class="p">(</span>
+        <span class="n">ptr</span><span class="nf">.offset</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">HEADER_SIZE</span> <span class="k">as</span> <span class="nb">isize</span><span class="p">)),</span>
+        <span class="nn">Layout</span><span class="p">::</span><span class="nf">from_size_align_unchecked</span><span class="p">(</span><span class="n">allocation_size</span> <span class="k">as</span> <span class="nb">usize</span><span class="p">,</span> <span class="n">ALIGNMENT</span><span class="p">),</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="afterthoughts">Afterthoughts</h2>
+
+<p>I can think of two things that could’ve been done better here to prevent this
+bug:</p>
+
+<ul>
+  <li>
+    <p>A post conditions that asserts proper alignment for <code class="language-plaintext highlighter-rouge">ptr</code> (unfortunately I
+doubt I was consciously aware of the alignment restriction when I wrote that
+<code class="language-plaintext highlighter-rouge">malloc</code> function anyways)</p>
+  </li>
+  <li>
+    <p>libpthread would be more robust if it used the high bits<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup> in the pointer for
+tagging rather than the first four (this would prevent alignment issues, but
+might cause other bugs more easily)</p>
+  </li>
+</ul>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p>On current x86-64 machines, virtual addresses do not use the <a href="https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details" title="Virtual address space details">full 64 bits available</a>. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+    </div>
+
+    <script src="https://utteranc.es/client.js" repo="gz/website" issue-term="pathname" theme="github-light"
+        crossorigin="anonymous" async>
+        </script>
+</div>
+  </div>
+
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+</body>
+
+</html>

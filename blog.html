@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-67902252-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-67902252-1');
+  </script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="favicon.png">
+
+  <title>Fantastic Bugs and Where to Find Them</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/css/bootstrap-social.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="/css/main.css" rel="stylesheet">
+  <link href="/css/syntax.css" rel="stylesheet" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">gerdzellweger.com</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          
+          
+
+          <li>
+            <a href="/blog" title="Blog">Blog</a>
+          </li>
+
+          <li>
+            <a href="cv.pdf" title="Resume">CV</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/gz" title="Github">Github</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Social <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="http://www.linkedin.com/pub/gerd-zellweger/29/714/624">LinkedIn</a></li>
+              <li><a href="https://twitter.com/gerdzellweger">Twitter</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!--/.nav-collapse -->
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="clearfix">
+  <h2>Fantastic Bugs and Where to Find Them</h2>
+  <p>
+    In this blog, I write about bugs in low-level systems code which were hard
+    to find, meaning it took me hours, days or sometimes even weeks.</br />
+    I hope you will find some joy in my suffering:
+  </p>
+</div>
+
+<div class="posts">
+  
+  <article class="post">
+    <h3><a href="/bugs/2021/03/13/context-switching-gone-wrong.html">Context-switching gone wrong</a></h3>
+    <p class="meta"> Written on March 13, 2021</p>
+
+    <div class="entry">
+      <p>I remember while this bug wasn’t that hard to fix (or find), it still had some
+“fantastic” potential to it. Because, when it appeared, at first nothing made
+sense anymore…</p>
+
+    </div>
+
+    <a href="/bugs/2021/03/13/context-switching-gone-wrong.html" class="read-more">Read More</a>
+  </article>
+  
+  <article class="post">
+    <h3><a href="/bugs/2021/03/11/when-alignment-matters.html">When alignment matters</a></h3>
+    <p class="meta"> Written on March 11, 2021</p>
+
+    <div class="entry">
+      <p>Some bugs are hard to find because when they manifest, they do so in a very
+misleading way. This one is about fairly unexpected consequences when things
+aren’t properly aligned. Most of the time alignment problems lead to “just” bad
+performance. In some other cases, hardware architectures may generate a fault on
+misaligned accesses (but this is easy to pin-point and fix). However, in our
+case the problem was a little more subtle.</p>
+
+    </div>
+
+    <a href="/bugs/2021/03/11/when-alignment-matters.html" class="read-more">Read More</a>
+  </article>
+  
+  <article class="post">
+    <h3><a href="/bugs/2020/03/08/76-requests-per-second.html">76 requests per second?</a></h3>
+    <p class="meta"> Written on March  8, 2020</p>
+
+    <div class="entry">
+      <p>It was a particularly mischievous bug. At the time, we were writing a new
+research prototype kernel in our group. Research operating systems are fun
+because you typically end up writing a lot of code until you get something very
+basic (like print) running. In fact, it’s often the case that you end up with a
+system or function call which can’t be fully implemented at the moment (because
+it would require too much code or other things are still missing for it).
+Therefore, every so often, you have to cut some corners and do a temporary,
+partial implementation to make progress on a goal.</p>
+
+    </div>
+
+    <a href="/bugs/2020/03/08/76-requests-per-second.html" class="read-more">Read More</a>
+  </article>
+  
+</div>
+  </div>
+
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+</body>
+
+</html>
