@@ -1,3 +1,32 @@
+- title: "Memory disaggregation: why now and what are the challenges"
+  authors: [
+    "Marcos K. Aguilera",
+    "Emmanuel Amaro",
+    "Nadav Amit",
+    "Erika Hunhoff",
+    "Anil Yelam",
+    "Gerd Zellweger"
+  ]
+  conference: "ACM SIGOPS Operating Systems Review"
+  shortcut: SIGOPS
+  location: Journal
+  date: 2023
+
+- title: "Beyond isolation: OS verification as a foundation for correct applications"
+  authors: [
+    "Matthias Brun",
+    "Reto Achermann",
+    "Tej Chajed",
+    "Jon Howell",
+    "Gerd Zellweger",
+    "Andrea Lattuada"
+  ]
+  conference: "Proceedings of the 19th Workshop on Hot Topics in Operating Systems"
+  shortcut: HotOS
+  location: Providence, USA
+  date: July 2023
+  pdf: papers/brun-hotos23.pdf
+
 - title: "Sharding the State Machine: Automated Modular Reasoning for Complex Concurrent Systems."
   authors: [
     "Travis Hance",
@@ -15,6 +44,7 @@
   shortcut: OSDI
   location: Boston, USA
   date: July 2023
+  pdf: papers/ironsync-osdi23.pdf
 
 - title: "Cache-Coherent Accelerators for Persistent Memory Crash Consistency."
   authors: [
