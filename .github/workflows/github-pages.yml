@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   github-pages:
@@ -15,6 +19,9 @@ jobs:
         uses: dante-ev/latex-action@master
         with:
           root_file: cv/cv.tex
-      - uses: helaili/jekyll-action@2.0.5
-        env:
-          JEKYLL_PAT: ${{ secrets.JEKYLL_PAT }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Build
+        uses: actions/jekyll-build-pages@v1
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
