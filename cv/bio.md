@@ -1,8 +1,7 @@
 # Biography
 
-Gerd Zellweger is a systems researcher focusing on operating systems, databases
-and networks. He likes to build system software that interacts with emerging 
-hardware technologies. He earned his Doctorate degree in Computer Science in 
-2017 at ETH Zurich and was a systems researcher at the VMware Research Group 
-from 2018 until 2023. Currently, he is a co-founder of a startup specializing
-on incremental computation.
+Gerd Zellweger is the head of engineering and co-founder at Feldera, a startup specializing
+in incremental computation. Previously, he was a systems researcher at VMware Research
+focusing on operating systems, databases and networks. He likes to build
+software that interacts closely with hardware technologies. He has published many scientific
+papers and patents and earned his Doctorate degree in Computer Science at ETH Zurich.
