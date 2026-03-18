@@ -5,59 +5,94 @@ title: Gerd Zellweger
 
 <div class="clearfix">
   <br />
-  <div class="pull-left" style="margin-right:20px;">
-    <img src="/img/gerd.jpg" alt="Profile Picture" width="140" class="img-rounded img-responsive" />
+  <div class="pull-left" style="margin-right: 20px">
+    <img
+      src="/img/gerd.jpg"
+      alt="Profile Picture"
+      width="140"
+      class="img-rounded img-responsive"
+    />
   </div>
   <p>
-    I am a systems researcher working at <a
-    href="https://feldera.com/">Feldera</a>. I'm interested in Operating Systems
-    design and implementation, networks and system software interaction with
-    emerging hardware technologies.
+    I am a co-founder at <a href="https://feldera.com/">Feldera</a>, where we
+    are revolutionizing data processing with incremental compute. I am
+    interested in operating systems design and implementation, databases,
+    networks, and system software interaction with emerging hardware
+    technologies.
   </p>
   <p>
-    Before that I was a researcher at <a href="https://research.vmware.com/">VMware Research (VRG)</a>
-    where I led the research effort on the <a href="https://nrkernel.systems/">NrOS</a>.
+    Previously, I was a researcher at
+    <a href="https://research.vmware.com/">VMware Research (VRG)</a>, where I
+    led the research effort on the <a href="https://nrkernel.systems/">NrOS</a>.
   </p>
-  <p>I graduated with a Doctor of Sciences in Computer Science from <a href="http://www.ethz.ch/">ETH Zürich</a> in
-    2017.
-    <a href="https://www.research-collection.ethz.ch/handle/20.500.11850/238571">My thesis</a> involved (among other
-    things) hacking on the <a href="http://barrelfish.org">Barrelfish Project</a>.
+  <p>
+    I graduated with a Doctor of Sciences in Computer Science from
+    <a href="http://www.ethz.ch/">ETH Zürich</a> in 2017.
+    <a href="https://www.research-collection.ethz.ch/handle/20.500.11850/238571"
+      >My thesis</a
+    >
+    involved (among other things) hacking on the
+    <a href="http://barrelfish.org">Barrelfish Project</a>.
   </p>
-  <p>In 2010, I co-founded a start-up called Texercises, a collaborative exercise database for teachers and students.
-    Texercises was acquired by edTechLab AG in 2015 (see <a href="https://taskbase.com/">taskbase.com</a>).</p>
+  <p>
+    In 2010, I co-founded a start-up called Texercises, a collaborative exercise
+    database for teachers and students. Texercises was acquired by edTechLab AG
+    in 2015 (see
+    <a href="https://taskbase.com/">taskbase.com</a>).
+  </p>
 </div>
 
 <div class="clearfix">
   <h3>Latest announcements</h3>
   <ul>
-    <li>I co-founded <a href="https://feldera.com/">Feldera</a>, a new
-    data-analytics platform built for data in-motion.</li>
-    <li>We released <a href="https://nrkernel.systems">the nrkernel</a> as an open-source project.
-      The project explores the design of a new OS kernel that uses operation logging, flat-combining
-      and replication to improve scalability of OS data-structures.</li>
-    <li>I'm holding the 2nd part of the Rust workshop on March 31st at <a
-        href="https://www.devpulsecon.org/">DevPulseCon
-        2021</a> together with <a href="https://research.vmware.com/researchers/ben-pfaff">Ben Pfaff</a>.</li>
-    <li><a href="https://research.vmware.com/researchers/ben-pfaff">Ben Pfaff</a> and I held a Rust workshop at <a
-        href="https://www.devpulsecon.org/">DevPulseCon
-        2020.</a></li>
-    <li>We released <a href="https://github.com/vmware/node-replication">node-replication</a>: A library to transform
-      single-threaded data-structures into concurrent ones.</li>
+    <li>
+      I co-founded <a href="https://feldera.com/">Feldera</a>, which
+      revolutionizes data processing with incremental compute.
+    </li>
+    <li>
+      We released <a href="https://nrkernel.systems">the nrkernel</a> as an
+      open-source project. The project explores the design of a new OS kernel
+      that uses operation logging, flat-combining and replication to improve
+      scalability of OS data-structures.
+    </li>
+    <li>
+      I'm holding the 2nd part of the Rust workshop on March 31st at
+      <a href="https://www.devpulsecon.org/">DevPulseCon 2021</a> together with
+      <a href="https://research.vmware.com/researchers/ben-pfaff">Ben Pfaff</a>.
+    </li>
+    <li>
+      <a href="https://research.vmware.com/researchers/ben-pfaff">Ben Pfaff</a>
+      and I held a Rust workshop at
+      <a href="https://www.devpulsecon.org/">DevPulseCon 2020.</a>
+    </li>
+    <li>
+      We released
+      <a href="https://github.com/vmware/node-replication">node-replication</a>:
+      A library to transform single-threaded data-structures into concurrent
+      ones.
+    </li>
   </ul>
 </div>
 
 <h3>Latest Publications</h3>
 <ul class="unstyled">
-
   {% for pub in site.data.publications %}
   <li>
-    {% if pub.best_paper %}<i class="fa fa-trophy" aria-hidden="true" title="Best Paper (Award)"></i>{% endif %}
-    {% if pub.pdf %}<a href="{{ pub.pdf }}"><i class="fa fa-file-pdf-o" title="Paper (PDF)"></i></a>{% endif %}
-    {% if pub.video %}<a href="{{ pub.video }}"><i class="fa fa-youtube-play" title="Talk (Video)"></i></a>{% endif %}
-    {% if pub.github %}<a href="{{ pub.github }}"><i class="fa fa-github" title="Code (Repository)"></i></a>{% endif %}
+    {% if pub.best_paper %}<i
+      class="fa fa-trophy"
+      aria-hidden="true"
+      title="Best Paper (Award)"
+    ></i
+    >{% endif %} {% if pub.pdf %}<a href="{{ pub.pdf }}"
+      ><i class="fa fa-file-pdf-o" title="Paper (PDF)"></i></a
+    >{% endif %} {% if pub.video %}<a href="{{ pub.video }}"
+      ><i class="fa fa-youtube-play" title="Talk (Video)"></i></a
+    >{% endif %} {% if pub.github %}<a href="{{ pub.github }}"
+      ><i class="fa fa-github" title="Code (Repository)"></i></a
+    >{% endif %}
     <strong>{{ pub.title }}</strong>
-    {{ pub.authors | join: ", "}}.
-    {{ pub.conference }} ({{ pub.shortcut }}, {{ pub.location }}, {{ pub.date }}).
+    {{ pub.authors | join: ", "}}. {{ pub.conference }} ({{ pub.shortcut }}, {{
+    pub.location }}, {{ pub.date }}).
   </li>
   {% endfor %}
 </ul>
@@ -65,9 +100,6 @@ title: Gerd Zellweger
 <div class="row">
   <div class="col-xs-4">
     <h3>Contact</h3>
-    <address>
-      mail at gerdzellweger.com<br />
-    </address>
-
+    <address>mail at gerdzellweger.com<br /></address>
   </div>
 </div>

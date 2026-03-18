@@ -1,0 +1,16 @@
+repos:
+  - repo: local
+    hooks:
+      - id: build-cv-pdf
+        name: Build cv.pdf
+        entry: bash -lc 'cd cv && latexmk -pdf -outdir=.. cv.tex'
+        language: system
+        files: ^cv/(cv\.tex|cv\.cls)$
+        pass_filenames: false
+
+      - id: prettier-website
+        name: Format website HTML and CSS
+        entry: npx prettier --write
+        language: system
+        files: ^(index\.html|blog\.html|_layouts/.*\.html|css/(main|syntax)\.css)$
+

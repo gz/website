@@ -1,3 +1,23 @@
+- title: "DBSP: automatic incremental view maintenance for rich query languages"
+  authors: [
+    "Mihai Budiu",
+    "Leonid Ryzhyk",
+    "Gerd Zellweger",
+    "Ben Pfaff",
+    "Lalith Suresh",
+    "Simon Kassing",
+    "Abhinav Gyawali",
+    "Matei Budiu",
+    "Tej Chajed",
+    "Frank McSherry",
+    "Val Tannen"
+  ]
+  conference: "The VLDB Journal"
+  shortcut: VLDB
+  location: Journal
+  date: July 2025
+  pdf: https://link.springer.com/content/pdf/10.1007/s00778-025-00922-y.pdf
+
 - title: "Memory disaggregation: why now and what are the challenges"
   authors: [
     "Marcos K. Aguilera",

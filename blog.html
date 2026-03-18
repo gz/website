@@ -7,7 +7,7 @@ title: Fantastic Bugs and Where to Find Them
   <h2>Fantastic Bugs and Where to Find Them</h2>
   <p>
     In this blog, I write about bugs in low-level systems code which were hard
-    to find, meaning it took me hours, days or sometimes even weeks.</br />
+    to find, meaning it took me hours, days or sometimes even weeks.<br />
     I hope you will find some joy in my suffering:
   </p>
 </div>
@@ -16,11 +16,9 @@ title: Fantastic Bugs and Where to Find Them
   {% for post in site.posts %}
   <article class="post">
     <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
-    <p class="meta"> Written on {{ post.date | date: "%B %e, %Y" }}</p>
+    <p class="meta">Written on {{ post.date | date: "%B %e, %Y" }}</p>
 
-    <div class="entry">
-      {{ post.excerpt }}
-    </div>
+    <div class="entry">{{ post.excerpt }}</div>
 
     <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
   </article>
