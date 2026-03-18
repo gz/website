@@ -1,0 +1,27 @@
+- title: "Nobody ever got fired for using a struct"
+  url: "https://www.feldera.com/blog/nobody-ever-got-fired-for-using-a-struct"
+  source: "Feldera Blog"
+  date: 2026-03-02
+  discussions:
+    - label: "Reddit"
+      url: "https://www.reddit.com/r/rust/comments/1rj74ch/nobody_ever_got_fired_for_using_a_struct_blog/"
+    - label: "HN"
+      url: "https://news.ycombinator.com/item?id=47225655"
+
+- title: "Cutting Down Rust Compile Times From 30 to 2 Minutes With One Thousand Crates"
+  url: "https://www.feldera.com/blog/cutting-down-rust-compile-times-from-30-to-2-minutes-with-one-thousand-crates"
+  source: "Feldera Blog"
+  date: 2025-04-15
+  discussions:
+    - label: "Reddit"
+      url: "https://www.reddit.com/r/rust/comments/1jzzavh/cutting_down_rust_compile_times_from_30_to_2/"
+    - label: "HN"
+      url: "https://news.ycombinator.com/item?id=43715235"
+
+- title: "The Pain That is Github Actions"
+  url: "https://www.feldera.com/blog/the-pain-that-is-github-actions"
+  source: "Feldera Blog"
+  date: 2025-03-17
+  discussions:
+    - label: "HN"
+      url: "https://news.ycombinator.com/item?id=43419701"

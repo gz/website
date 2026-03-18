@@ -3,24 +3,86 @@ layout: default
 title: Fantastic Bugs and Where to Find Them
 ---
 
-<div class="clearfix">
-  <h2>Fantastic Bugs and Where to Find Them</h2>
-  <p>
+<section class="max-w-3xl">
+  <p
+    class="font-sans text-sm font-semibold uppercase tracking-[0.22em] text-teal-700"
+  >
+    Blog
+  </p>
+  <h1
+    class="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl"
+  >
+    Fantastic Bugs and Where to Find Them
+  </h1>
+  <p class="mt-5 max-w-2xl text-xl leading-9 text-slate-700">
     In this blog, I write about bugs in low-level systems code which were hard
     to find, meaning it took me hours, days or sometimes even weeks.<br />
     I hope you will find some joy in my suffering:
   </p>
-</div>
+</section>
 
-<div class="posts">
+<section
+  class="mt-10 rounded-xl border border-slate-200 bg-slate-50 px-6 py-5 shadow-paper"
+>
+  <h2 class="text-2xl font-semibold tracking-tight text-slate-950">
+    Recent posts on the Feldera blog
+  </h2>
+  <p class="mt-3 text-lg leading-8 text-slate-700">
+    I write mostly posts on the company blog these days. A few recent ones:
+  </p>
+  <div class="mt-6 space-y-5">
+    {% for post in site.data.external_posts %}
+    <article>
+      <h3 class="text-xl font-semibold tracking-tight text-slate-950">
+        <a class="hover:text-teal-700" href="{{ post.url }}"
+          >{{ post.title }}</a
+        >
+      </h3>
+      <p class="mt-1 font-sans text-sm text-slate-500">
+        Published {{ post.date | date: "%B %-d, %Y" }}
+      </p>
+      {% if post.discussions %}
+      <p class="mt-2 font-sans text-sm text-slate-600">
+        Discussions: {% for discussion in post.discussions %}
+        <a class="text-teal-700 hover:text-teal-800" href="{{ discussion.url }}"
+          >{{ discussion.label }}</a
+        >{% unless forloop.last %} · {% endunless %} {% endfor %}
+      </p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="mt-12">
+  <h2 class="text-2xl font-semibold tracking-tight text-slate-950">
+    Older posts here
+  </h2>
+</section>
+
+<div class="mt-12 space-y-5">
   {% for post in site.posts %}
-  <article class="post">
-    <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
-    <p class="meta">Written on {{ post.date | date: "%B %e, %Y" }}</p>
+  <article
+    class="rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-paper"
+  >
+    <h2 class="text-2xl font-semibold tracking-tight text-slate-950">
+      <a class="hover:text-teal-700" href="{{ site.baseurl }}{{ post.url }}"
+        >{{ post.title }}</a
+      >
+    </h2>
+    <p class="mt-2 font-sans text-sm text-slate-500">
+      Written on {{ post.date | date: "%B %e, %Y" }}
+    </p>
 
-    <div class="entry">{{ post.excerpt }}</div>
+    <div class="entry mt-4 text-lg leading-8 text-slate-700">
+      {{ post.excerpt }}
+    </div>
 
-    <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
+    <a
+      href="{{ site.baseurl }}{{ post.url }}"
+      class="mt-4 inline-flex font-sans text-sm font-semibold text-teal-700 hover:text-teal-800"
+      >Read more</a
+    >
   </article>
   {% endfor %}
 </div>

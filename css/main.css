@@ -1,21 +1,11 @@
 body {
-  padding-top: 50px;
-  line-height: 1.7;
-  font-size: 1.7em;
+  font-family: "Source Serif 4", Georgia, serif;
 }
 
-kbd {
-  -moz-background-clip: border;
-  -moz-background-inline-policy: continuous;
-  -moz-background-origin: padding;
-  background: #eeeeee none repeat scroll 0 0;
-  border-color: #cccccc #aaaaaa #888888 #bbbbbb;
-  border-style: solid;
-  border-width: 1px 1px 2px 2px;
-  color: #000000;
-  padding: 2px 1px;
-  white-space: nowrap;
+.font-sans-display {
+  font-family: "Inter", "Helvetica Neue", sans-serif;
 }
 
-.post {
+.publication-entry + .publication-entry {
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }

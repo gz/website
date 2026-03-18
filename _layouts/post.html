@@ -2,11 +2,24 @@
 layout: default
 ---
 
-<div class="clearfix">
-  <h2>{{ page.title }}</h2>
-  <p class="meta">Written on {{ page.date | date: "%B %e, %Y" }}</p>
+<article class="w-full">
+  <p
+    class="font-sans text-sm font-semibold uppercase tracking-[0.22em] text-teal-700"
+  >
+    Post
+  </p>
+  <h1
+    class="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl"
+  >
+    {{ page.title }}
+  </h1>
+  <p class="mt-3 font-sans text-sm text-slate-500">
+    Written on {{ page.date | date: "%B %e, %Y" }}
+  </p>
 
-  <div class="post">{{ content }}</div>
+  <div class="mt-8 space-y-4 text-xl leading-9 text-slate-700">
+    {{ content }}
+  </div>
 
   <script
     src="https://utteranc.es/client.js"
@@ -16,4 +29,4 @@ layout: default
     crossorigin="anonymous"
     async
   ></script>
-</div>
+</article>
