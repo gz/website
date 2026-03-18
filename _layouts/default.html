@@ -40,14 +40,14 @@ url: /index.html
         theme: {
           extend: {
             colors: {
-              ink: "#0f172a",
-              muted: "#475569",
-              paper: "#fffdf8",
-              line: "#e2e8f0",
-              accent: "#0f766e",
+              ink: "#16211d",
+              muted: "#51615b",
+              paper: "#fbfcfb",
+              line: "#d8e2dc",
+              accent: "#2f6f5e",
             },
             boxShadow: {
-              paper: "0 10px 30px rgba(15, 23, 42, 0.06)",
+              paper: "0 10px 30px rgba(22, 33, 29, 0.06)",
             },
             fontFamily: {
               serif: ['"Source Serif 4"', "Georgia", "serif"],
@@ -68,25 +68,32 @@ url: /index.html
     <link href="/css/syntax.css" rel="stylesheet" />
   </head>
 
-  <body class="bg-white text-ink antialiased">
+  <body class="bg-stone-50 text-ink antialiased">
     <div class="mx-auto max-w-5xl px-5 pb-16 pt-6 sm:px-8 lg:px-10">
-      <header class="mb-10 border-b border-slate-200 pb-5">
+      <header class="mb-10 border-b border-[#d8e2dc] pb-5">
         <div
           class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
         >
           <div>
-            <a
-              class="font-sans-display text-sm font-semibold uppercase tracking-[0.22em] text-slate-900"
-              href="/"
-              >{{ site.name }}</a
-            >
+            <a class="inline-flex items-center gap-3 text-slate-950" href="/">
+              <span
+                class="flex h-10 w-10 items-center justify-center rounded-full border border-[#b7c8c0] bg-white font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f6f5e]"
+                >gz</span
+              >
+              <span class="block text-left leading-none">
+                <span
+                  class="block text-[1.45rem] font-semibold tracking-[-0.05em] text-slate-950"
+                  >Gerd Zellweger</span
+                >
+              </span>
+            </a>
           </div>
           <nav
-            class="flex flex-wrap gap-x-5 gap-y-2 font-sans text-sm font-medium text-slate-600"
+            class="flex flex-wrap gap-x-5 gap-y-2 font-sans text-[0.95rem] font-medium text-[#3f4f49]"
           >
             {% for link in page.navigation %}
             <a
-              class="{% if page.url == link.url %}text-slate-950{% else %}text-slate-600{% endif %} transition hover:text-slate-950"
+              class="{% if page.url == link.url %}text-slate-950{% else %}text-[#3f4f49]{% endif %} transition hover:text-slate-950"
               href="{{ link.url }}"
               title="{{ link.title }}"
               >{{ link.text }}</a
@@ -117,7 +124,7 @@ url: /index.html
       <main>{{ content }}</main>
 
       <footer
-        class="mt-16 border-t border-slate-200 pt-5 font-sans text-sm text-slate-500"
+        class="mt-16 border-t border-[#d8e2dc] pt-5 font-sans text-sm text-[#64756f]"
       >
         <div
           class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"

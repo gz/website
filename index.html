@@ -8,7 +8,9 @@ title: Gerd Zellweger
     <div class="max-w-3xl space-y-4 text-xl leading-9 text-slate-700">
       <p>
         I am a co-founder at
-        <a class="text-teal-700 hover:text-teal-800" href="https://feldera.com/"
+        <a
+          class="text-[#2f6f5e] hover:text-[#25594b]"
+          href="https://feldera.com/"
           >Feldera</a
         >, where we are revolutionizing data processing with incremental
         compute.
@@ -21,27 +23,29 @@ title: Gerd Zellweger
       <p>
         Previously, I was a researcher at
         <a
-          class="text-teal-700 hover:text-teal-800"
+          class="text-[#2f6f5e] hover:text-[#25594b]"
           href="https://research.vmware.com/"
           >VMware Research</a
         >, where I led the research effort on the
         <a
-          class="text-teal-700 hover:text-teal-800"
+          class="text-[#2f6f5e] hover:text-[#25594b]"
           href="https://nrkernel.systems/"
           >NrOS</a
         >. I earned a
         <a
-          class="text-teal-700 hover:text-teal-800"
+          class="text-[#2f6f5e] hover:text-[#25594b]"
           href="https://www.research-collection.ethz.ch/items/d296963b-7c06-4b0b-84be-7f5e1e8e8939"
           >Doctor of Sciences in Computer Science</a
         >
         from
-        <a class="text-teal-700 hover:text-teal-800" href="http://www.ethz.ch/"
+        <a
+          class="text-[#2f6f5e] hover:text-[#25594b]"
+          href="http://www.ethz.ch/"
           >ETH Zurich</a
         >
         in 2017 after spending a lot of time hacking on the
         <a
-          class="text-teal-700 hover:text-teal-800"
+          class="text-[#2f6f5e] hover:text-[#25594b]"
           href="http://barrelfish.org"
           >Barrelfish Project</a
         >.
@@ -49,22 +53,22 @@ title: Gerd Zellweger
     </div>
     <div class="mt-8 flex flex-wrap gap-3 font-sans text-sm font-medium">
       <a
-        class="rounded-md bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800"
+        class="rounded-md bg-[#2f6f5e] px-4 py-2 text-white transition hover:bg-[#25594b]"
         href="https://feldera.com/"
         >Feldera</a
       >
       <a
-        class="rounded-md border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+        class="rounded-md border border-[#c9d6cf] bg-white px-4 py-2 text-[#42524d] transition hover:border-[#aebfb7] hover:text-slate-950"
         href="/cv.pdf"
         >CV</a
       >
       <a
-        class="rounded-md border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+        class="rounded-md border border-[#c9d6cf] bg-white px-4 py-2 text-[#42524d] transition hover:border-[#aebfb7] hover:text-slate-950"
         href="/cv/bio.md"
         >Bio</a
       >
       <a
-        class="rounded-md border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+        class="rounded-md border border-[#c9d6cf] bg-white px-4 py-2 text-[#42524d] transition hover:border-[#aebfb7] hover:text-slate-950"
         href="https://github.com/gz"
         >GitHub</a
       >
@@ -73,7 +77,7 @@ title: Gerd Zellweger
 
   <aside class="lg:pl-4">
     <img
-      class="w-full rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-paper"
+      class="w-full rounded-xl border border-[#d8e2dc] bg-[#f7faf8] p-2 shadow-paper"
       src="/img/gerd.png"
       alt="Portrait of Gerd Zellweger"
     />
@@ -86,12 +90,12 @@ title: Gerd Zellweger
       Recent articles
     </h2>
   </div>
-  <div class="rounded-xl border border-slate-200 bg-slate-50 shadow-paper">
+  <div class="rounded-xl border border-[#d8e2dc] bg-[#f7faf8] shadow-paper">
     <ul class="list-none p-0">
       {% for post in site.data.external_posts limit: 3 %}
       <li class="publication-entry px-5 py-5 sm:px-6">
         <div class="text-xl font-semibold leading-8 text-slate-950">
-          <a class="hover:text-teal-700" href="{{ post.url }}"
+          <a class="hover:text-[#2f6f5e]" href="{{ post.url }}"
             >{{ post.title }}</a
           >
         </div>
@@ -102,7 +106,7 @@ title: Gerd Zellweger
         <p class="mt-2 font-sans text-sm leading-7 text-slate-600">
           Discussions: {% for discussion in post.discussions %}
           <a
-            class="text-teal-700 hover:text-teal-800"
+            class="text-[#2f6f5e] hover:text-[#25594b]"
             href="{{ discussion.url }}"
             >{{ discussion.label }}</a
           >{% unless forloop.last %} · {% endunless %} {% endfor %}
@@ -120,7 +124,7 @@ title: Gerd Zellweger
       Selected and recent papers
     </h2>
   </div>
-  <div class="rounded-xl border border-slate-200 bg-slate-50 shadow-paper">
+  <div class="rounded-xl border border-[#d8e2dc] bg-[#f7faf8] shadow-paper">
     <ul class="list-none p-0">
       {% for pub in site.data.publications %}
       <li class="publication-entry px-5 py-5 sm:px-6">
