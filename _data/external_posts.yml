@@ -2,6 +2,9 @@
   url: "https://www.feldera.com/blog/ai-agents-arent-coworkers-embed-them-in-your-software"
   source: "Feldera Blog"
   date: 2026-04-21
+  discussions:
+    - label: "HN"
+      url: "https://news.ycombinator.com/item?id=47905837"
 
 - title: "Nobody ever got fired for using a struct"
   url: "https://www.feldera.com/blog/nobody-ever-got-fired-for-using-a-struct"
