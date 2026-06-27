@@ -92,15 +92,19 @@ title: Gerd Zellweger
   </div>
   <div class="rounded-xl border border-[#d8e2dc] bg-[#f7faf8] shadow-paper">
     <ul class="list-none p-0">
-      {% for post in site.data.external_posts limit: 3 %}
+      {% assign recent_articles = site.posts | concat: site.data.external_posts
+      | sort: "date" | reverse %} {% for post in recent_articles limit: 3 %}
       <li class="publication-entry px-5 py-5 sm:px-6">
         <div class="text-xl font-semibold leading-8 text-slate-950">
-          <a class="hover:text-[#2f6f5e]" href="{{ post.url }}"
+          <a
+            class="hover:text-[#2f6f5e]"
+            href="{% if post.source %}{{ post.url }}{% else %}{{ site.baseurl }}{{ post.url }}{% endif %}"
             >{{ post.title }}</a
           >
         </div>
         <p class="mt-2 font-sans text-sm leading-7 text-slate-500">
-          {{ post.source }} · {{ post.date | date: "%B %-d, %Y" }}
+          {% if post.source %}{{ post.source }}{% else %}gerdzellweger.com{%
+          endif %} · {{ post.date | date: "%B %-d, %Y" }}
         </p>
         {% if post.discussions %}
         <p class="mt-2 font-sans text-sm leading-7 text-slate-600">
