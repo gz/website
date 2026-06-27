@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "PRs and LLMs"
-date:   2026-06-27 12:00:00
+date:   2026-06-27 03:00:00 -0700
 categories: engineering
 ---
 
