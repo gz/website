@@ -53,6 +53,50 @@ Some of that disagreement is taste. Some of it is measurable. To make reviews le
 
 (5) is where I expect engineering teams like ours to spend most of their time.
 
+<aside class="not-prose my-10 rounded-2xl border border-teal-100 bg-teal-50/60 p-6 font-sans shadow-paper sm:p-7">
+  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
+    Rust's testing ecosystem
+  </p>
+  <p class="mt-4 text-[0.97rem] leading-7 text-slate-700">
+    We write mostly Rust. And the ecosystem is great to establish (1). If we need a PR to carry this much proof
+    the tooling makes it cheap. We use the following libraries at Feldera excessively:
+  </p>
+  <ul class="mt-4 space-y-3 text-[0.95rem] leading-7 text-slate-700">
+    <li>
+      <a href="https://crates.io/crates/rstest" class="underline decoration-teal-300 decoration-1 underline-offset-2 transition hover:decoration-teal-600" target="_blank" rel="noopener"><code class="rounded bg-white px-1.5 py-0.5 font-mono text-[0.85em] text-teal-800">rstest</code></a>
+      for fixtures and parameterized cases, so one test body covers a whole
+      table of inputs.
+    </li>
+    <li>
+      <a href="https://crates.io/crates/proptest" class="underline decoration-teal-300 decoration-1 underline-offset-2 transition hover:decoration-teal-600" target="_blank" rel="noopener"><code class="rounded bg-white px-1.5 py-0.5 font-mono text-[0.85em] text-teal-800">proptest</code></a>
+      to generate inputs and shrink any failure down to a minimal
+      counterexample.
+    </li>
+    <li>
+      <a href="https://crates.io/crates/proptest-state-machine" class="underline decoration-teal-300 decoration-1 underline-offset-2 transition hover:decoration-teal-600" target="_blank" rel="noopener"><code class="rounded bg-white px-1.5 py-0.5 font-mono text-[0.85em] text-teal-800">proptest-state-machine</code></a>
+      to drive random sequences of operations against a reference model and
+      assert the implementation and the model never disagree.
+    </li>
+    <li>
+      <a href="https://crates.io/crates/loom" class="underline decoration-teal-300 decoration-1 underline-offset-2 transition hover:decoration-teal-600" target="_blank" rel="noopener"><code class="rounded bg-white px-1.5 py-0.5 font-mono text-[0.85em] text-teal-800">loom</code></a>
+      to exhaustively check lock-free code against every interleaving the memory
+      model permits.
+    </li>
+    <li>
+      <a href="https://crates.io/crates/shuttle" class="underline decoration-teal-300 decoration-1 underline-offset-2 transition hover:decoration-teal-600" target="_blank" rel="noopener"><code class="rounded bg-white px-1.5 py-0.5 font-mono text-[0.85em] text-teal-800">shuttle</code></a>
+      to hunt the same class of concurrency bugs in larger programs, where
+      loom's exhaustive search gets too expensive and randomized exploration
+      wins.
+    </li>
+  </ul>
+  <p class="mt-5 text-[0.97rem] leading-7 text-slate-700">
+    Libraries are a mechanism. More important is that our engineering org
+    thinks about code in terms of specifications, invariants, pre- and post-conditions.
+    None of this was a bad idea before LLMs, just that it's much more important now to handle the
+    increased velocity.
+  </p>
+</aside>
+
 ## Merging changes faster than the codebase can absorb
 
 A senior engineer knows which areas of the codebase are safe, risky, or outright dangerous to change. This is knowledge a new engineer (or LLM) does not have. It's learned from too many 3 a.m. pages.
@@ -65,4 +109,7 @@ That code usually falls into one of a few categories. It may have grown into a g
 
 ## Makes sense?
 
-If you have strong opinions about this, tell me about it. We are hiring Rust [backend and product engineers](https://jobs.ashbyhq.com/feldera).
+Does it seem appealing to you to work in such an engineering organization? 
+We are hiring [Rust backend and product engineers](https://jobs.ashbyhq.com/feldera).
+
+Or do you think it won't solve any of the "PR-slop" problems? I'm happy to hear about that too.
